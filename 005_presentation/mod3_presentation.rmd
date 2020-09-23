@@ -1,0 +1,66 @@
+---
+title: "Advances in the analysis of multivariate ecological data"
+subtitle: "MOD3:yalla"
+author: "Jonathan Jupke"
+institute: "University of Koblenz Landau"
+date: "2021/01/07"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+<!--TODO abstand zwischen Bullets-->  
+<!--# TODO serial slide-->   
+<!--# TODO bullet color-->  
+
+# Plan for today 
+
+- What’s new in multivariate analysis?
+- mvabund
+- Vector GLM/GAM
+- Latent Variable Models 
+- Copulas 
+- Hierarchical Modeling of Species Communities
+- Neural Hierarchical Models 
+
+---
+class: inverse, center, middle 
+
+# What’s new in multivariate analysis?
+
+---
+
+# ... or what's old
+
+--
+
+brainstrom : What Methods do you know? 
+
+--
+
+- PCA
+- RDA
+- PERMANOVA
+- CA/ CCA
+- Random Forests 
+- Clustering Methods 
+
+--
+
+What do they all have in common? 
+
+--
+
+Based 
+
+
+
+
+
+
