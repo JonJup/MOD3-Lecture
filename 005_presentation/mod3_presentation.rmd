@@ -57,9 +57,18 @@ What do they all have in common?
 
 --
 
-Based 
+Based on distances
+
+---
+
+# Terminology confusions 
 
 
+"Our constrained ordination models [...]" [1]  
+
+.footnote[
+[1] Brittain et al. (2020). Freshwater Biology.
+]
 
 
 
