@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <meta name="author" content="Jonathan Jupke" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
-    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs\sydney.css" type="text/css" />
+    <link rel="stylesheet" href="libs\sydney-fonts.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
@@ -19,6 +20,15 @@ class: center, middle, inverse, title-slide
 
 ---
 
+&lt;style type="text/css"&gt;
+.remark-code { font-family: 'Source Code Pro', 'Lucida Console', Monaco, monospace;
+                                    font-size: 100%;
+                                  }
+}
+&lt;/style&gt;
+
+
+
 
 
 
@@ -29,12 +39,19 @@ class: center, middle, inverse, title-slide
 # Plan for today 
 
 - What’s new in multivariate analysis?
+
 - mvabund
+
 - Vector GLM/GAM
+
 - Latent Variable Models 
+
 - Copulas 
+
 - Hierarchical Modeling of Species Communities
+
 - Neural Hierarchical Models 
+
 
 ---
 class: inverse, center, middle 
@@ -58,24 +75,249 @@ brainstrom : What Methods do you know?
 - Random Forests 
 - Clustering Methods 
 
---
+---
+# Bi/Triplot
 
-What do they all have in common? 
 
---
-
-Based on distances
+```r
+library(vegan)
+data(dune)
+data(dune.env)
+rda_object &lt;- rda(dune ~ ., dune.env)
+```
 
 ---
+# Bi/Triplot
 
+```r
+plot(rda_object)
+```
+
+&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# What do most ordinations have in common? 
+
+--
+They are based on some notion of a distance metric
+## fixed 
+- PCA and RDA: Euclidean 
+- CA and CCA: `\(\chi^2\)`-distance
+
+--
+
+## flexible 
+- NMDS 
+- PCoA
+- dbRDA
+
+---
+# How does that differ from the univerate and why? 
+
+--
+
+In univariate analyses we mostly use models:
+- linear model 
+- linear mixed model 
+- generalized linear model 
+- generalized additive models 
+
+--
+
+`\(\rightarrow\)` why not in multivariate analyses? 
+
+---
+class: middle, center
+
+&lt;img src="old_pc.gif" style="display: block; margin: auto;" /&gt;
+
+---
+# The idea is old 
+
+Some stuff for Canonical Gaussian Ordination
+
+---
+# What is the model-based approach? 
+
+---
 # Terminology confusions 
 
 
 "Our constrained ordination models [...]" [1]  
+"Many biologists fit CCA models [...]" [2]
+
+add here that transformation might be an alternative
+also algorithm based approach 
 
 .footnote[
-[1] Brittain et al. (2020). Freshwater Biology.
+[1] Brittain et al. (2020). Freshwater Biology
+
+[2] Yee (2004). Ecological Monographs 
 ]
+---
+# Should ecologist prefer the model- to the distance-based approach? 
+
+now here come the studies: WWW12, Eduard Szösz, me, 
+
+---
+class: inverse, center, middle 
+
+# mvabund
+
+---
+# mvabund 
+
+R package published in 2012  (Wang et al. 2012)
+
+**M**ulti**v**ariate **Abund**ance data 
+
+Multivariate
+- many, possibly correlated responses 
+
+Abundance
+- strong mean variance realtionship 
+
+---
+# mvabund uses manyglms 
+
+`$$g(\mu_1) ) = L_1 + \epsilon \rightarrow Likelihood\ ratio_1$$`
+`$$g(\mu_2) ) = L_2 + \epsilon \rightarrow Likelihood\ ratio_2$$`
+`$$g(\mu_3) ) = L_3 + \epsilon \rightarrow Likelihood\ ratio_3$$`
+`$$g(\mu_4) ) = L_4 + \epsilon \rightarrow Likelihood\ ratio_4$$`
+--
+The individual Likelihood ratios indicate the effect on a single species. The sum `\(\Sigma LR\)` that on all. 
+
+---
+
+
+```r
+library(mvabund)
+data("Tasmania")
+attach(Tasmania)
+head(copepods[,1:3])
+```
+
+```
+##      Ameira Adopsyllus Ectinosoma
+## B1D1     43          0          0
+## B1D2     63          0          0
+## B1U1    124          0          0
+## B1U2    105          0          2
+## B2D1      4          0          0
+## B2D2      5          0          0
+```
+
+```r
+tasmvabund &lt;- mvabund(copepods)
+class(tasmvabund)
+```
+
+```
+## [1] "mvabund" "matrix"
+```
+---
+
+```r
+plot(tasmvabund~treatment, col = as.numeric(block))
+```
+
+```
+## 
+##  PIPING TO 2nd MVFACTOR
+```
+
+&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+---
+
+```r
+meanvar.plot(copepods~tr.block, col = as.numeric (treatment))
+```
+
+```
+## START SECTION 2 
+## Plotting if overlay is TRUE
+```
+
+&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
+```
+## FINISHED SECTION 2
+```
+---
+# Fitting a model 
+
+```r
+tas.nb &lt;- manyglm(copepods ~ block*treatment, 
+                  family = "negative.binomial")
+```
+
+
+`$$Y_{ij} \sim NB(\mu_{jkl}, \phi_j)$$`
+`$$log(\mu_{jkl}) = intercept_j + block_{jkl} + treatment_{jl} + block \times treatment_{jkl}$$`
+---
+# Checking model assumptions 
+
+```r
+plot.manyglm(tas.nb, which = 1)
+```
+
+&lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 1-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Checking model assumptions
+
+```r
+plot.manyglm(tas.nb, which = 2)
+```
+
+&lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 2-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Checking model assumptions
+
+```r
+plot.manyglm(tas.nb, which = 3)
+```
+
+&lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 3-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Testing Hypotheses
+
+
+```r
+#anova_out &lt;- anova(tas.nb, p.uni = "adjusted")
+```
+.scroll-box-16[
+
+```r
+#anova_out
+```
+]
+
+---
+class: inverse, center, middle 
+
+# Vector Genralized Models 
+
+---
+class: inverse, center, middle 
+
+# Latent Variable Models 
+
+---
+class: inverse, center, middle 
+
+# Copulas 
+
+---
+class: inverse, center, middle 
+
+# Hierarchical modeling of species communities 
+
+---
+class: inverse, center, middle 
+
+# Hierarchical Neural networks 
+
+---
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
