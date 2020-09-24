@@ -286,16 +286,19 @@ $$log(\mu_{jkl}) = intercept_j + block_{jkl} + treatment_{jl} + block \times tre
 ```{r mvabund Checking model assumptions 1, fig.align="center", fig.height=6, fig.width=6}
 plot.manyglm(tas.nb, which = 1)
 ```
+.footnote[Dunn & Smyth (1996)]
 ---
 # Checking model assumptions
 ```{r mvabund Checking model assumptions 2, fig.align="center", fig.height=6, fig.width=6}
 plot.manyglm(tas.nb, which = 2)
 ```
+.footnote[Dunn & Smyth (1996)]
 ---
 # Checking model assumptions
 ```{r mvabund Checking model assumptions 3, fig.align="center", fig.height=6, fig.width=6}
 plot.manyglm(tas.nb, which = 3)
 ```
+.footnote[Dunn & Smyth (1996)]
 ---
 # Testing Hypotheses
 
@@ -311,7 +314,11 @@ anova_out
 ---
 # Advanced Features
 
+Different options for correlations   
 
+---
+# Include Traits 
+https://rpubs.com/dwarton/68823
 ---
 class: inverse, center, middle 
 
