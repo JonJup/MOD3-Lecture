@@ -300,11 +300,11 @@ plot.manyglm(tas.nb, which = 3)
 # Testing Hypotheses
 
 ```{r mvabund Testing Hypotheses, comment=""}
-#anova_out <- anova(tas.nb, p.uni = "adjusted")
+anova_out <- anova(tas.nb, p.uni = "adjusted")
 ```
 .scroll-box-16[
 ```{r}
-#anova_out
+anova_out
 ```
 ]
 
