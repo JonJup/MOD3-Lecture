@@ -165,16 +165,20 @@ Alternative 2: transformation-based
 "*Many biologist fit CCA models [...]* " Yee (2004) 
 
 ---
+background-image: url("figures/glm_error.png")
+background-size: 500px
+background-position: 50% 50%
+<!-- Are models better  1-->
+# Are models better? 
+
+---
 background-image: url("figures/WWW12_1.png")
 background-size: 800px
 background-position: 50% 50%
-
+<!-- Are models better  2-->
 # Are models better? 
 
-<!--now here come the studies: WWW12, Eduard Szösz, me-->
 Every distance metric assumes a mean variance relationship  
-
-
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -218,8 +222,6 @@ background-position: 50% 50%
 
 # Are models better? 
 
-
-
 .footnote[Jupke *et al.* (2020)]
 ---
 class: inverse, center, middle 
@@ -231,25 +233,84 @@ class: inverse, center, middle
 
 R package published in 2012  (Wang et al. 2012)
 
-**M**ulti**v**ariate **Abund**ance data 
+**M**ulti**v**ariate **Abund**ance data  
 
 Multivariate
 - many, possibly correlated responses 
 
 Abundance
-- strong mean variance realtionship 
+- strong mean-variance relationship 
+---
+# Multivariate GLMM
+
+We could use mixed models and model the taxon as a random effect.
+$$Abundace \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$
+1. $y_{ij}$ are independand, conditional on mean  $\mu_{ij}$
+2. Conditional on $\mu_{ij}$, data come from a .blue[known distribution]  
+3. straight line relationship between some function $\mu_{ij}$ and x, with error $\epsilon_{ij}$
+$$g(\mu_{ij}) = \beta_0j + x^T_j \beta_j + \epsilon_{ij}$$
+4. $\epsilon$ are normally distributed. They introduce correlation between response within observatios. 
+$$\epsilon_{ij} \sim MVN(0, \Sigma)$$
+---
+# Implementations in R
+
+- lme4 
+- MCMCglmm 
+- Purpose written code (e.g. Pollock et al 2014)
 
 ---
-# mvabund uses manyglms 
+# Whats the problem with this approach? 
 
-$$g(\mu_1) ) = L_1 + \epsilon \rightarrow Likelihood\ ratio_1$$
+|  # responses | # parameters in $\Sigma$ |
+| :---- |:--- |
+| 5     | 15 |
+| 10    | 55 |
+| 20    | 210 |
+| 40    |  820 |
+
+- No convergence in ML GLMM  
+- long run time, not all parameters converge, and big influence of prior as $\frac{\# data}{\#parameters}$ is small. 
+  
+---
+# Simplify
+mvabund uses design-based inference and assumes simple correlation structures.  
+This is fine if we are primarily interested in species environment relationships  
+
 --
-$$g(\mu_2) ) = L_2 + \epsilon \rightarrow Likelihood\ ratio_2$$
+Multivariate: row resampling for inference, preserves species correlations  
+Abundance: separate GLM for each species
+---
+# Test statistics  
 
+default: $\Sigma\ Likelihood\ Ratios$
+\begin{align}
+L & = 2 \times (l_M - l_m)  \\
+L &\sim \chi^2_{p_M - p_m} \\  
+\end{align}
+
+This does not account for correlations in the statistic but in the pseudo-*p*-value.  
 --
-The individual Likelihood ratios indicate the effect on a single species. 
+  
+  
+Alternatives:      
+  
+Wald statistic   
+\begin{align}
+W &= \frac{(\beta_m - \beta_0)^2}{var(\beta_m)} \\
+z &= \sqrt(W)
+\end{align}
 
-The sum $\Sigma LR$ that on the community. 
+Score statistic  
+see e.g. Dunn \& Smyth (2018)
+
+---
+# Correlation options
+  
+.blue["I"]: No correlation, default setting   
+.blue["R"]: Assumes correlation, cf. mixed model  
+.blue["shrink"]: middle option, shrinks correlation matrix to $I$ with ridge regularization (Warton (2008))  
+  
+For R and shrink LR is not available. They are estimated with generalized estimation equations (Warton 2011) which do not produce likelihoods. 
 
 ---
 
@@ -303,26 +364,91 @@ plot.manyglm(tas.nb, which = 3)
 # Testing Hypotheses
 
 ```{r mvabund Testing Hypotheses, comment=""}
-anova_out <- anova(tas.nb, p.uni = "adjusted")
+# anova_out <- anova(tas.nb, p.uni = "adjusted")
 ```
 .scroll-box-16[
 ```{r}
-anova_out
+# anova_out
 ```
 ]
+---
+```{r}
+library(lattice)
+a <- max(abs(coef(tas.nb)))
+colort <- colorRampPalette(c("blue", "white", "red"))
+plot.tas <- levelplot(t(as.matrix(coef(tas.nb))), ylab = "", xlab  = "", col.regions = colort(100), at=seq(-a,a,length = 100), scales = list( x= list(rot = 45)))
+print(plot.tas)
+```
+---
+```{r}
+tas_pred = predict(tas.nb, type = "response")
+matplot(t(tas_pred[c(1,3),]), type = "l", xaxt = "n", log = "y", ylab = "Mean abundance [log]")
+axis(1, at =1:12, labels = colnames(copepods), las = 3)
+legend("topright", legend = levels(treatment), col = 1:2, lty = 1:2)
+```
+
 
 ---
-# Advanced Features
-
-Different options for correlations   
-
----
-# Include Traits 
+# Traits 
+Not discussed in lecture. See here for introduction:  
 https://rpubs.com/dwarton/68823
+
 ---
 class: inverse, center, middle 
 
 # Vector Genralized Models 
+
+---
+```{r load VGAM, message=FALSE}
+library(VGAM)
+```
+
+```{r}
+data(spider)
+knitr::kable(head(spider$abund[,1:5]), format = "html")
+```
+---
+.scroll-output[
+```{r run cqo, message=FALSE, warning=F}
+set.seed(1234)
+p1ut.hs <- cqo(
+  cbind(
+    Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,
+    Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,
+    Trocterr, Zoraspin) ~ WaterCon + BareSand + 
+    FallTwig + CoveMoss + CoveHerb + ReflLux,
+    family = poissonff, data = hspider, eq.toler = FALSE, trace = FALSE)
+S <- ncol(depvar(p1ut.hs)) # Number of species
+clr <- (1:(S+1))[-7] # Omits yellow
+lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
+
+```
+]
+---
+```{r cqo persp plot}
+persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
+```
+
+---
+# Predictors 
+```{r cqo 1d  variables}
+round(concoef(p1ut.hs), digits = 2)
+```
+---
+
+.small[
+```{r cqo run 2d, echo=T, results='hide'}
+p2et.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,Trocterr, Zoraspin)
+               ~ WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
+               poissonff, data = hspider, Crow1positive = FALSE, Rank = 2,
+               I.toler = TRUE, Bestof = 2)
+```
+]
+---
+
+```{r cqo 2d persp, echo=T, results='hide'}
+persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), theta = 120, phi = 20)
+```
 
 ---
 class: inverse, center, middle 

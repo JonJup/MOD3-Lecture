@@ -174,16 +174,20 @@ Alternative 2: transformation-based
 "*Many biologist fit CCA models [...]* " Yee (2004) 
 
 ---
+background-image: url("figures/glm_error.png")
+background-size: 500px
+background-position: 50% 50%
+&lt;!-- Are models better  1--&gt;
+# Are models better? 
+
+---
 background-image: url("figures/WWW12_1.png")
 background-size: 800px
 background-position: 50% 50%
-
+&lt;!-- Are models better  2--&gt;
 # Are models better? 
 
-&lt;!--now here come the studies: WWW12, Eduard Szösz, me--&gt;
 Every distance metric assumes a mean variance relationship  
-
-
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -227,8 +231,6 @@ background-position: 50% 50%
 
 # Are models better? 
 
-
-
 .footnote[Jupke *et al.* (2020)]
 ---
 class: inverse, center, middle 
@@ -240,25 +242,84 @@ class: inverse, center, middle
 
 R package published in 2012  (Wang et al. 2012)
 
-**M**ulti**v**ariate **Abund**ance data 
+**M**ulti**v**ariate **Abund**ance data  
 
 Multivariate
 - many, possibly correlated responses 
 
 Abundance
-- strong mean variance realtionship 
+- strong mean-variance relationship 
+---
+# Multivariate GLMM
+
+We could use mixed models and model the taxon as a random effect.
+`$$Abundace \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$`
+1. `\(y_{ij}\)` are independand, conditional on mean  `\(\mu_{ij}\)`
+2. Conditional on `\(\mu_{ij}\)`, data come from a .blue[known distribution]  
+3. straight line relationship between some function `\(\mu_{ij}\)` and x, with error `\(\epsilon_{ij}\)`
+`$$g(\mu_{ij}) = \beta_0j + x^T_j \beta_j + \epsilon_{ij}$$`
+4. `\(\epsilon\)` are normally distributed. They introduce correlation between response within observatios. 
+`$$\epsilon_{ij} \sim MVN(0, \Sigma)$$`
+---
+# Implementations in R
+
+- lme4 
+- MCMCglmm 
+- Purpose written code (e.g. Pollock et al 2014)
 
 ---
-# mvabund uses manyglms 
+# Whats the problem with this approach? 
 
-`$$g(\mu_1) ) = L_1 + \epsilon \rightarrow Likelihood\ ratio_1$$`
+|  # responses | # parameters in `\(\Sigma\)` |
+| :---- |:--- |
+| 5     | 15 |
+| 10    | 55 |
+| 20    | 210 |
+| 40    |  820 |
+
+- No convergence in ML GLMM  
+- long run time, not all parameters converge, and big influence of prior as `\(\frac{\# data}{\#parameters}\)` is small. 
+  
+---
+# Simplify
+mvabund uses design-based inference and assumes simple correlation structures.  
+This is fine if we are primarily interested in species environment relationships  
+
 --
-`$$g(\mu_2) ) = L_2 + \epsilon \rightarrow Likelihood\ ratio_2$$`
+Multivariate: row resampling for inference, preserves species correlations  
+Abundance: separate GLM for each species
+---
+# Test statistics  
 
+default: `\(\Sigma\ Likelihood\ Ratios\)`
+`\begin{align}
+L &amp; = 2 \times (l_M - l_m)  \\
+L &amp;\sim \chi^2_{p_M - p_m} \\  
+\end{align}`
+
+This does not account for correlations in the statistic but in the pseudo-*p*-value.  
 --
-The individual Likelihood ratios indicate the effect on a single species. 
+  
+  
+Alternatives:      
+  
+Wald statistic   
+`\begin{align}
+W &amp;= \frac{(\beta_m - \beta_0)^2}{var(\beta_m)} \\
+z &amp;= \sqrt(W)
+\end{align}`
 
-The sum `\(\Sigma LR\)` that on the community. 
+Score statistic  
+see e.g. Dunn \&amp; Smyth (2018)
+
+---
+# Correlation options
+  
+.blue["I"]: No correlation, default setting   
+.blue["R"]: Assumes correlation, cf. mixed model  
+.blue["shrink"]: middle option, shrinks correlation matrix to `\(I\)` with ridge regularization (Warton (2008))  
+  
+For R and shrink LR is not available. They are estimated with generalized estimation equations (Warton 2011) which do not produce likelihoods. 
 
 ---
 
@@ -344,6 +405,7 @@ plot.manyglm(tas.nb, which = 2)
 ```
 
 &lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 2-1.png" style="display: block; margin: auto;" /&gt;
+.footnote[Dunn &amp; Smyth (1996)]
 ---
 # Checking model assumptions
 
@@ -352,78 +414,230 @@ plot.manyglm(tas.nb, which = 3)
 ```
 
 &lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 3-1.png" style="display: block; margin: auto;" /&gt;
+.footnote[Dunn &amp; Smyth (1996)]
 ---
 # Testing Hypotheses
 
 
 ```r
-anova_out &lt;- anova(tas.nb, p.uni = "adjusted")
-```
-
-```
-Time elapsed: 0 hr 0 min 17 sec
+# anova_out &lt;- anova(tas.nb, p.uni = "adjusted")
 ```
 .scroll-box-16[
 
 ```r
-anova_out
-```
-
-```
-## Analysis of Deviance Table
-## 
-## Model: copepods ~ block * treatment
-## 
-## Multivariate test:
-##                 Res.Df Df.diff    Dev Pr(&gt;Dev)    
-## (Intercept)         15                            
-## block               12       3 117.48    0.002 ** 
-## treatment           11       1  66.91    0.001 ***
-## block:treatment      8       3  37.41    0.069 .  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Univariate Tests:
-##                 Ameira          Adopsyllus          Ectinosoma         
-##                    Dev Pr(&gt;Dev)        Dev Pr(&gt;Dev)        Dev Pr(&gt;Dev)
-## (Intercept)                                                            
-## block            4.931    0.401     17.632    0.025      7.707    0.384
-## treatment        13.94    0.023      0.091    0.973      14.68    0.016
-## block:treatment  6.349    0.489      1.295    0.893      0.836    0.894
-##                 Ectinosomat          Haloschizo          Lepta.A         
-##                         Dev Pr(&gt;Dev)        Dev Pr(&gt;Dev)     Dev Pr(&gt;Dev)
-## (Intercept)                                                              
-## block                10.876    0.189      3.134    0.401   20.89    0.010
-## treatment             0.409    0.942      2.105    0.687   0.146    0.973
-## block:treatment       1.122    0.894          0    0.894  13.072    0.175
-##                 Lepta.B          Lepta.C          Mictyricola         
-##                     Dev Pr(&gt;Dev)     Dev Pr(&gt;Dev)         Dev Pr(&gt;Dev)
-## (Intercept)                                                           
-## block             8.017    0.384  13.763    0.073       6.766    0.401
-## treatment         1.358    0.822   5.797    0.234      11.742    0.037
-## block:treatment   7.402    0.431    0.34    0.894       5.268    0.489
-##                 Parevansula           Quin          Rhizothrix         
-##                         Dev Pr(&gt;Dev)   Dev Pr(&gt;Dev)        Dev Pr(&gt;Dev)
-## (Intercept)                                                            
-## block                   6.1    0.401 6.017    0.401     11.649    0.145
-## treatment                 0    0.973 8.807    0.114      7.833    0.153
-## block:treatment       1.726    0.860     0    0.894          0    0.894
-## Arguments:
-##  Test statistics calculated assuming uncorrelated response (for faster computation) 
-## P-value calculated using 999 iterations via PIT-trap resampling.
+# anova_out
 ```
 ]
+---
+
+```r
+library(lattice)
+a &lt;- max(abs(coef(tas.nb)))
+colort &lt;- colorRampPalette(c("blue", "white", "red"))
+plot.tas &lt;- levelplot(t(as.matrix(coef(tas.nb))), ylab = "", xlab  = "", col.regions = colort(100), at=seq(-a,a,length = 100), scales = list( x= list(rot = 45)))
+print(plot.tas)
+```
+
+![](mod3_presentation_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+---
+
+```r
+tas_pred = predict(tas.nb, type = "response")
+matplot(t(tas_pred[c(1,3),]), type = "l", xaxt = "n", log = "y", ylab = "Mean abundance [log]")
+axis(1, at =1:12, labels = colnames(copepods), las = 3)
+legend("topright", legend = levels(treatment), col = 1:2, lty = 1:2)
+```
+
+![](mod3_presentation_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
 
 ---
-# Advanced Features
-
-Different options for correlations   
-Include Traits 
+# Traits 
+Not discussed in lecture. See here for introduction:  
+https://rpubs.com/dwarton/68823
 
 ---
 class: inverse, center, middle 
 
 # Vector Genralized Models 
+
+---
+
+```r
+library(VGAM)
+```
+
+
+```r
+data(spider)
+knitr::kable(head(spider$abund[,1:5]), format = "html")
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Alopacce &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Alopcune &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Alopfabr &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Arctlute &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Arctperi &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+.scroll-output[
+
+```r
+set.seed(1234)
+p1ut.hs &lt;- cqo(
+  cbind(
+    Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,
+    Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,
+    Trocterr, Zoraspin) ~ WaterCon + BareSand + 
+    FallTwig + CoveMoss + CoveHerb + ReflLux,
+    family = poissonff, data = hspider, eq.toler = FALSE, trace = FALSE)
+```
+
+```
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   5. Trying internal starting values.
+```
+
+```r
+S &lt;- ncol(depvar(p1ut.hs)) # Number of species
+clr &lt;- (1:(S+1))[-7] # Omits yellow
+lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
+```
+
+![](mod3_presentation_files/figure-html/run cqo-1.png)&lt;!-- --&gt;
+]
+---
+
+```r
+persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
+```
+
+![](mod3_presentation_files/figure-html/cqo persp plot-1.png)&lt;!-- --&gt;
+
+---
+# Predictors 
+
+```r
+round(concoef(p1ut.hs), digits = 2)
+```
+
+```
+##          latvar
+## WaterCon   0.29
+## BareSand  -0.32
+## FallTwig   0.29
+## CoveMoss  -0.14
+## CoveHerb   0.27
+## ReflLux   -0.52
+```
+---
+
+.small[
+
+```r
+p2et.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,Trocterr, Zoraspin)
+               ~ WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
+               poissonff, data = hspider, Crow1positive = FALSE, Rank = 2,
+               I.toler = TRUE, Bestof = 2)
+```
+
+```
+## Warning in cqo.fitter(x = x, y = y, w = w, offset = offset, etastart =
+## etastart, : I.tolerances = TRUE but the variables making up the latent
+## variable(s) do not appear to be centered.
+```
+
+```
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+```
+
+```
+## Warning in checkwz(wz, M = M, trace = trace, wzeps = control$wzepsilon): 3
+## diagonal elements of the working weights variable 'wz' have been replaced by
+## 1.819e-12
+```
+
+```
+## Warning in cqo.fitter(x = x, y = y, w = w, offset = offset, etastart =
+## etastart, : I.tolerances = TRUE but the variables making up the latent
+## variable(s) do not appear to be centered.
+```
+]
+---
+
+
+```r
+persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), theta = 120, phi = 20)
+```
+
+![](mod3_presentation_files/figure-html/cqo 2d persp-1.png)&lt;!-- --&gt;
 
 ---
 class: inverse, center, middle 
