@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2019.8.23)  24 SEP 2020 09:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2019.8.23)  28 SEP 2020 13:46
 entering extended mode
 **./Namenlos-2.tex
 (Namenlos-2.tex
@@ -35,73 +35,163 @@ LaTeX Font Info:    ... okay on input line 5.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
 LaTeX Font Info:    ... okay on input line 5.
 
-Overfull \hbox (2.27827pt too wide) in paragraph at lines 6--7
-[]\OT1/cmr/m/n/10 This doc-u-ments con-tains lit-er-a-ture that was ei-ther cit
-ed in the MOD3 Lecutre
- []
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 8--9
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 10--12
+Underfull \hbox (badness 10000) in paragraph at lines 10--11
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 13--14
+Underfull \hbox (badness 10000) in paragraph at lines 12--13
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 15--16
+Underfull \hbox (badness 10000) in paragraph at lines 14--15
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 17--18
+Underfull \hbox (badness 10000) in paragraph at lines 16--17
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 19--20
+Underfull \hbox (badness 10000) in paragraph at lines 18--19
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 21--22
+Underfull \hbox (badness 10000) in paragraph at lines 20--21
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 23--24
+Underfull \hbox (badness 10000) in paragraph at lines 22--23
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 25--26
+Underfull \hbox (badness 10000) in paragraph at lines 24--25
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 26--27
 
  []
 
 [1
 
-{C:/Users/jonat/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
-(Namenlos-2.aux) ) 
+{C:/Users/jonat/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+Underfull \hbox (badness 10000) in paragraph at lines 28--29
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 30--31
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 32--33
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 34--35
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 36--37
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 38--39
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 40--41
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 42--43
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 44--45
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 46--47
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 48--49
+
+ []
+
+[2]
+Underfull \hbox (badness 10000) in paragraph at lines 50--51
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 53--54
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 55--56
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 57--58
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 59--60
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 61--62
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 63--64
+
+ []
+
+[3] (Namenlos-2.aux) ) 
 Here is how much of TeX's memory you used:
- 211 strings out of 492895
- 2458 string characters out of 3136759
+ 218 strings out of 492895
+ 2532 string characters out of 3136759
  63667 words of memory out of 3000000
- 4211 multiletter control sequences out of 15000+200000
- 4245 words of font info for 16 fonts, out of 3000000 for 9000
+ 4215 multiletter control sequences out of 15000+200000
+ 5258 words of font info for 19 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 23i,4n,18p,404b,107s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/Programme/MikeTex/fonts/type1/public/amsfonts/cm/cmbx12.p
-fb><C:/Programme/MikeTex/fonts/type1/public/amsfonts/cm/cmr10.pfb>
-Output written on Namenlos-2.pdf (2 pages, 38778 bytes).
+ 23i,4n,18p,404b,105s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Programme/MikeTex/fonts/type1/public/amsfonts/cm/cmbx
+12.pfb><C:/Programme/MikeTex/fonts/type1/public/amsfonts/cm/cmbxti10.pfb><C:/Pr
+ogramme/MikeTex/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Programme/MikeTex/
+fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on Namenlos-2.pdf (3 pages, 67439 bytes).
 PDF statistics:
- 17 PDF objects out of 1000 (max. 8388607)
+ 28 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

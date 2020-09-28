@@ -10,6 +10,9 @@ output:
     css: ["default", "libs/sydney.css", "libs/sydney-fonts.css"]
     nature:
       countIncrementalSlides: false
+      navigation:
+        scroll: false # disable slide transitions by scrolling
+
 ---
 ```{css, echo = FALSE}
 .remark-code { font-family: 'Source Code Pro', 'Lucida Console', Monaco, monospace;
@@ -189,8 +192,6 @@ background-position: 50% 75%
 # Are models better? 
 
 Every distance metric assumes a mean variance relationship  
-
-
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -397,66 +398,329 @@ https://rpubs.com/dwarton/68823
 class: inverse, center, middle 
 
 # Vector Genralized Models 
+---
+# VGLMs
+.footnote[see Dobson & Barnett (2018) for more on the exponential family]
+
+... are an extension of GLMs   
+GLMs are restricted to distributions from the .blue[exponential family].   
+VGLMS are not.  
+VGLMs can have multiple linear predictors, for different parameters.  
+Explanatroy variables can differ between predictors.
+---
+# The exponential family
+
+$$f(x, \theta) = s(x)\ t(\theta)\ exp (a(y)\ b(\theta))$$
+--
+$$f(x, \theta) = exp(a(y)\ b(\theta) + c(\theta) + d(y)) $$
+with $c(\theta) = exp(t(\theta))$ and $d(y) = exp(s(y))$
+
+--
+
+.blue[Poisson]
+\begin{align}
+f(x,\lambda) &= \frac{\lambda^y e^{-\lambda}}{y!}\\
+\theta &= \lambda\\
+f(x, \theta) &= exp(log(\theta)\ y - \theta - log(y!))
+\end{align}
+
 
 ---
-```{r load VGAM, message=FALSE}
-library(VGAM)
+# Reduced Rank VGLM  
+
+Reduce the dimensions, i.e. number of predictors $P$ by reduced rank regression   
+
+--
+
+Create latent variables $\nu$ from subset of environmental variables $X$
+
+--
+
+$x = (x_1, x_2)$ and $B = c(B_1,B_2)$  
+
+--
+$$B_2 = A C^T$$ 
+$$\nu = C^T x_2\ \ \ \ \ \ (site\ scores)$$
+$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu$$
+--
+$\rightarrow$ Reduced Rank Regression is the same as RDA! 
+
+
+---
+
+# Quadratic RR-VGLM
+
+In ecology, unimodal responses are the norm (Oksanen & Minchin, 2002)  
+
+--
+
+quadratic linear predictor  
+
+--
+
+$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu\ \ \ \ \ \ \ ordinary\ RR-VGLM$$
+$$\eta_s = \beta_{1(s)}^T  + \beta_{2(s)}\ \nu + \beta_{3(s)}\ \nu^2\ \ \ \ \ \ \ quadratic\ RR-VGLM$$
+$$ log\ \mu_s(\nu) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\nu - u_s}{t_s} \bigg)^2 $$
+
+
+---
+# Hunting Spider Data
+
+from ter Braak (1986)  
+
+```{r load VGAM, message=FALSE, echo = F}
+library(VGAM);library("DT"); library("dplyr");library(kableExtra)
+data(hspider)
 ```
 
-```{r}
-data(spider)
-knitr::kable(head(spider$abund[,1:5]), format = "html")
+```{r, echo = F}
+
+hspider %>% 
+  kbl(format = "html") %>% 
+  scroll_box(height = "400px", width = "700px")
+
 ```
 ---
+# Rank-1 Poisson CQO
 .scroll-output[
 ```{r run cqo, message=FALSE, warning=F}
 set.seed(1234)
-p1ut.hs <- cqo(
-  cbind(
-    Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,
-    Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,
-    Trocterr, Zoraspin) ~ WaterCon + BareSand + 
-    FallTwig + CoveMoss + CoveHerb + ReflLux,
-    family = poissonff, data = hspider, eq.toler = FALSE, trace = FALSE)
-S <- ncol(depvar(p1ut.hs)) # Number of species
-clr <- (1:(S+1))[-7] # Omits yellow
-lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
-
+hspider[, 1:6] <- scale(hspider[, 1:6]) # Standardized environmental variables
+p1ut.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
+                     Arctlute, Arctperi, Auloalbi, 
+                     Pardlugu, Pardmont, Pardnigr, 
+                     Pardpull, Trocterr, Zoraspin) ~ 
+                 WaterCon + BareSand + FallTwig + CoveMoss + 
+                 CoveHerb + ReflLux,
+               family = poissonff, 
+               data = hspider, 
+               eq.toler = FALSE, 
+               trace = FALSE)
 ```
 ]
+
+```{r options cqo plot1, echo =F}
+S <- ncol(depvar(p1ut.hs)) # Number of species
+clr <- (1:(S+1))[-7] # Omits yellow
+```
 ---
-```{r cqo persp plot}
+# Latent Variable Plot 
+```{r cqo lvplot 1, message=FALSE, warning=F, fig.align="center"}
+lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
+```
+
+---
+# 2d Perspective Plot 
+```{r CQO persp plot, fig.align="center"}
 persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
 ```
 
 ---
-# Predictors 
-```{r cqo 1d  variables}
-round(concoef(p1ut.hs), digits = 2)
+# Constrained Coefficients
+```{r 1d CQO variables}
+concoef(p1ut.hs) %>%  as.vector() %>% round(2) -> p1ut_coef
+names(p1ut_coef) <- row.names(concoef(p1ut.hs))
+print(p1ut_coef)
 ```
----
 
+--
+.scroll-box-8[
+```{r 1d CQO Tolerances}
+Tol(p1ut.hs)[1, 1, ]
+```
+]
+---
+# Let's add a second gradient
 .small[
-```{r cqo run 2d, echo=T, results='hide'}
-p2et.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,Trocterr, Zoraspin)
+```{r run 2d CQO, echo=T, results='hide'}
+p2et.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, ... = Pardpull,Trocterr, Zoraspin)
                ~ WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
                poissonff, data = hspider, Crow1positive = FALSE, Rank = 2,
                I.toler = TRUE, Bestof = 2)
 ```
 ]
 ---
+# 2 Graident Latent Variable Plot 
 
-```{r cqo 2d persp, echo=T, results='hide'}
-persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), theta = 120, phi = 20)
+```{r, 2d latent variable plot, fig.align="center" , echo = F}
+lvplot(p2et.hs, ellipse = FALSE, label = TRUE, xlim = c(-3, 5.7),
+C = TRUE, Ccol = "brown", sites = TRUE, scol = "gray50",
+pcol = "blue", pch = "+", chull = TRUE, ccol = "gray50")
 ```
 
 ---
-class: inverse, center, middle 
-
-# Latent Variable Models 
-
+# 3d Perspective plot
+```{r CQO 2d persp plot, echo=T, results='hide', fig.align="center"}
+persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), 
+      theta = 120, phi = 20)
+```
 ---
+# Extended ouput 
+
+.scroll-output[
+```{r CQO coefficients}
+coef(p2et.hs)
+```
+
+]
+---
+# Constained Additive Ordination 
+Besides VGLMs, additive models VGAMs can be fitted.  
+- Syntax similar to CQO 
+- new argument: *df1.nl*: effective non-linear degrees of freedom  
+- controls how smooth the output is (0 = linear)
+.scroll-output[
+```{r fit CAO}
+set.seed(1)
+# p1cao.hs <- cao(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi, Auloalbi,
+#                       Pardlugu, Pardmont, Pardnigr, Pardpull, Trocterr, Zoraspin) ~
+#                 WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
+#                 poissonff, data = hspider, Rank = 1, df1.nl = 2, Bestof = 10, 
+#                 Crow1positive = FALSE)
+```
+
+]
+---
+# CAO single species plots
+
+```{r, cao plot, fig.align="center", echo = F}
+# par(mfrow = c(3,3))
+# plot(p1cao.hs, lcol = "blue", lwd = 2, ylim = c(-5, 5), xlab = "", ylab = "")
+```
+---
+```{r, cao persp, fig.align="center", echo = F}
+# par(mfrow = c(1,1))
+# persp(p1cao.hs,col = clr, label = TRUE)
+```
+---
+# In practice 
+
+- They are not commonly used 
+- individual GLMs outperformed CQO in predicting species ranges (Baselga & Araújo, 2009)
+- CQO better for rare species but GLM predicts better (Bonthoux *et al.* 2013) 
+- mvabund glms differentiated between noise and causal variables better than CQO (Jupke & Schäfer, 2020)
+- CQO and CAO predict better (but still bad) than GLM and GAM to dissimilar conditions (Maguire *et. al.*, 2016) 
+- Applied studies mostly with fish (e.g. Vilizzi et al. (2012), Top *et al.* (2016))
+- "limitations on the number of species, steepness of the learning curve and low numerical stability of the algorithm" (ter Braak & Šmilauer 2015)
+---
+class: inverse, center, middle
+# Latent Variable Models 
+---
+
+# Think back to GLMM 
+
+\begin{align}
+g(m_{ij}) &= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
+y_{ij}|u_{ij} &\sim F(m_{ij}, \phi)\\
+u_i & \sim N(0, \Sigma)
+\end{align}
+
+--
+
+--- 
+\begin{align}
+g(m_{ij}) &= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
+u_i &= z_i^T \lambda_j\\
+y_{ij}|z_{i} &\sim F(m_{ij}, \phi)\\
+z_{i} &\sim N(0, I)
+\end{align}
+
+--
+$\rightarrow$ basically an ordination of the covariance matrix
+---
+```{r}
+library(gllvm);library(corrplot);library(gclus)
+data("antTraits")
+y <- as.matrix(antTraits$abund)
+X <- scale(as.matrix(antTraits$env))
+TR <- antTraits$traits
+```
+---
+# Unconstrained ordination with gllvm
+.scroll-output[
+```{r}
+fit_uo_po <- gllvm(y, family = poisson())
+fit_uo_nb <- gllvm(y, family = "negative.binomial")
+fit_uo_po
+fit_uo_nb
+par(mfrow = c(1,2))
+plot(fit_uo_nb, which = 1)
+plot(fit_uo_po, which = 1)
+plot(fit_uo_nb, which = 2)
+plot(fit_uo_po, which = 2)
+plot(fit_uo_nb, which = 3)
+plot(fit_uo_po, which = 3)
+```
+]
+---
+# Biplot with gllvm 
+
+```{r gllvm unconstrained biplot, fig.align = "center", fig.height=7, echo = F}
+ordiplot(fit_uo_nb, biplot = TRUE, ind.spp = 15, xlim = c(-3,3) , ylim = c(-2, 1.6))
+```
+---
+# Constrained Ordination with gllvm 
+```{r}
+fit_co_nb2 <- gllvm(y, X, num.lv = 2, 
+                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+                    family = "negative.binomial")
+fit_co_nb3 <- gllvm(y, X, num.lv = 3, 
+                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+                    family = "negative.binomial")
+```
+---
+# Biplot of constrained ordination 
+```{r gllvm constrained biplot, echo = F, fig.align ="center"}
+ordiplot(fit_co_nb3, biplot = T)
+```
+---
+# Coefficient plot 
+```{r gllvm constrained coefficient plot, echo = F, fig.align = "center", fig.width = 10}
+coefplot(fit_co_nb3, cex.ylab = 0.7, mar = c(4,9,2,1), 
+         xlim.list = list(NULL, NULL, c(-4,4)))
+
+```
+---
+# Residual Correlation plot 
+```{r gllvm Residual Correlation plot, echo = F, fig.align="center"}
+cr <- getResidualCor(fit_co_nb3)
+par(mfrow = c(1,1))
+corrplot(cr[order.single(cr), order.single(cr)], diag = FALSE, type = "lower", method = "square", tl.cex = 0.8, tl.srt = 45, tl.col = "red")
+```
+---
+# Fitting a Fourth Corner Model
+```{r}
+fit_4th <- gllvm(y, X, TR, 
+                 family = "negative.binomial", 
+                 num.lv = 2, 
+                 formula = y ~ 
+                   (Bare.ground + Shrub.cover + Volume.lying.CWD) +
+                   (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
+                   (Pilosity + Polymorphism + Webers.length))
+
+```
+---
+# Fourth Corner Interaction Plot
+```{r, echo = F, fig.align = "center"}
+fourth <- fit_4th$fourth.corner
+colort <- colorRampPalette(c("blue", "white", "red"))
+a <- max( abs(fourth) )
+plot.4th <- lattice::levelplot((as.matrix(fourth)), xlab = "Environmental Variables", 
+                      ylab = "Species traits", col.regions = colort(100), cex.lab =1.3,
+                      at = seq(-a, a, length = 100), scales = list(x = list(rot = 45)))
+plot.4th
+```
+---
+# Do Traits matter here? 
+```{r}
+fit_4th2 <- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
+                  formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
+anova(fit_4th, fit_4th2)
+```
+---
+
 class: inverse, center, middle 
+
 
 # Copulas 
 

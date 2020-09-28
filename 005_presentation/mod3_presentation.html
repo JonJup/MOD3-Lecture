@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <meta name="author" content="Jonathan Jupke" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
     <link rel="stylesheet" href="libs\sydney.css" type="text/css" />
     <link rel="stylesheet" href="libs\sydney-fonts.css" type="text/css" />
   </head>
@@ -198,8 +200,6 @@ background-position: 50% 75%
 # Are models better? 
 
 Every distance metric assumes a mean variance relationship  
-
-
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -460,92 +460,685 @@ https://rpubs.com/dwarton/68823
 class: inverse, center, middle 
 
 # Vector Genralized Models 
+---
+# VGLMs
+.footnote[see Dobson &amp; Barnett (2018) for more on the exponential family]
+
+... are an extension of GLMs   
+GLMs are restricted to distributions from the .blue[exponential family].   
+VGLMS are not.  
+VGLMs can have multiple linear predictors, for different parameters.  
+Explanatroy variables can differ between predictors.
+---
+# The exponential family
+
+`$$f(x, \theta) = s(x)\ t(\theta)\ exp (a(y)\ b(\theta))$$`
+--
+$$f(x, \theta) = exp(a(y)\ b(\theta) + c(\theta) + d(y)) $$
+with `\(c(\theta) = exp(t(\theta))\)` and `\(d(y) = exp(s(y))\)`
+
+--
+
+.blue[Poisson]
+`\begin{align}
+f(x,\lambda) &amp;= \frac{\lambda^y e^{-\lambda}}{y!}\\
+\theta &amp;= \lambda\\
+f(x, \theta) &amp;= exp(log(\theta)\ y - \theta - log(y!))
+\end{align}`
+
+
+---
+# Reduced Rank VGLM  
+
+Reduce the dimensions, i.e. number of predictors `\(P\)` by reduced rank regression   
+
+--
+
+Create latent variables `\(\nu\)` from subset of environmental variables `\(X\)`
+
+--
+
+`\(x = (x_1, x_2)\)` and `\(B = c(B_1,B_2)\)`  
+
+--
+`$$B_2 = A C^T$$` 
+`$$\nu = C^T x_2\ \ \ \ \ \ (site\ scores)$$`
+`$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu$$`
+--
+`\(\rightarrow\)` Reduced Rank Regression is the same as RDA! 
+
 
 ---
 
-```r
-library(VGAM)
-```
+# Quadratic RR-VGLM
+
+In ecology, unimodal responses are the norm (Oksanen &amp; Minchin, 2002)  
+
+--
+
+quadratic linear predictor  
+
+--
+
+`$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu\ \ \ \ \ \ \ ordinary\ RR-VGLM$$`
+`$$\eta_s = \beta_{1(s)}^T  + \beta_{2(s)}\ \nu + \beta_{3(s)}\ \nu^2\ \ \ \ \ \ \ quadratic\ RR-VGLM$$`
+$$ log\ \mu_s(\nu) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\nu - u_s}{t_s} \bigg)^2 $$
 
 
-```r
-data(spider)
-knitr::kable(head(spider$abund[,1:5]), format = "html")
-```
+---
+# Hunting Spider Data
 
-&lt;table&gt;
+from ter Braak (1986)  
+
+
+
+&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:700px; "&gt;&lt;table&gt;
  &lt;thead&gt;
   &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; Alopacce &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Alopcune &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Alopfabr &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Arctlute &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Arctperi &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; WaterCon &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; BareSand &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; FallTwig &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; CoveMoss &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; CoveHerb &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; ReflLux &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alopacce &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alopcune &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alopfabr &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Arctlute &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Arctperi &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Auloalbi &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardlugu &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardmont &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardnigr &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardpull &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Trocterr &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Zoraspin &lt;/th&gt;
   &lt;/tr&gt;
  &lt;/thead&gt;
 &lt;tbody&gt;
   &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.3321 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.4543 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.9120 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 60 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 57 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.0493 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5643 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.6094 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 37 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 65 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.5572 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.6052 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 66 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.6741 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.6151 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.9957 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 86 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.0155 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.6151 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3026 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 135 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 91 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.3810 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 63 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.1781 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.6151 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3026 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 89 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 105 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 118 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.6247 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.2627 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.4849 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.3307 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.1972 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.9318 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.2192 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.1109 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.7136 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 95 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.2925 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.8286 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.0254 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 96 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.5175 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5109 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 43 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.0865 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5643 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.2696 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.3944 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.0301 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.6052 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.3322 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.4543 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 23 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.1224 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.3944 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.9232 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5109 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.6094 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.6094 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3.1091 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5951 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.9755 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5643 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1.2528 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.3307 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.9120 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1.1939 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.0254 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.0943 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1.6487 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.0254 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.0073 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1.8245 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.5835 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.1109 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3026 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.9933 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.5109 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.3820 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.9555 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.8286 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.9555 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.7136 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
-&lt;/table&gt;
+&lt;/table&gt;&lt;/div&gt;
 ---
+# Rank-1 Poisson CQO
 .scroll-output[
 
 ```r
 set.seed(1234)
-p1ut.hs &lt;- cqo(
-  cbind(
-    Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,
-    Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,
-    Trocterr, Zoraspin) ~ WaterCon + BareSand + 
-    FallTwig + CoveMoss + CoveHerb + ReflLux,
-    family = poissonff, data = hspider, eq.toler = FALSE, trace = FALSE)
+hspider[, 1:6] &lt;- scale(hspider[, 1:6]) # Standardized environmental variables
+p1ut.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
+                     Arctlute, Arctperi, Auloalbi, 
+                     Pardlugu, Pardmont, Pardnigr, 
+                     Pardpull, Trocterr, Zoraspin) ~ 
+                 WaterCon + BareSand + FallTwig + CoveMoss + 
+                 CoveHerb + ReflLux,
+               family = poissonff, 
+               data = hspider, 
+               eq.toler = FALSE, 
+               trace = FALSE)
 ```
 
 ```
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
+## cqo_1; no convergence for Species number   4. Trying internal starting values.
 ## cqo_1; no convergence for Species number   5. Trying internal starting values.
 ## cqo_1; no convergence for Species number   5. Trying internal starting values.
 ## cqo_1; no convergence for Species number   5. Trying internal starting values.
@@ -556,57 +1149,67 @@ p1ut.hs &lt;- cqo(
 ## cqo_1; no convergence for Species number   5. Trying internal starting values.
 ## cqo_1; no convergence for Species number   5. Trying internal starting values.
 ```
+]
+
+
+---
+# Latent Variable Plot 
 
 ```r
-S &lt;- ncol(depvar(p1ut.hs)) # Number of species
-clr &lt;- (1:(S+1))[-7] # Omits yellow
 lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
 ```
 
-![](mod3_presentation_files/figure-html/run cqo-1.png)&lt;!-- --&gt;
-]
+&lt;img src="mod3_presentation_files/figure-html/cqo lvplot 1-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
+# 2d Perspective Plot 
 
 ```r
 persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
 ```
 
-![](mod3_presentation_files/figure-html/cqo persp plot-1.png)&lt;!-- --&gt;
+&lt;img src="mod3_presentation_files/figure-html/CQO persp plot-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
-# Predictors 
+# Constrained Coefficients
 
 ```r
-round(concoef(p1ut.hs), digits = 2)
+concoef(p1ut.hs) %&gt;%  as.vector() %&gt;% round(2) -&gt; p1ut_coef
+names(p1ut_coef) &lt;- row.names(concoef(p1ut.hs))
+print(p1ut_coef)
 ```
 
 ```
-##          latvar
-## WaterCon   0.29
-## BareSand  -0.32
-## FallTwig   0.29
-## CoveMoss  -0.14
-## CoveHerb   0.27
-## ReflLux   -0.52
+## WaterCon BareSand FallTwig CoveMoss CoveHerb  ReflLux 
+##     0.23    -0.51     0.60    -0.21     0.34    -0.80
 ```
+
+--
+.scroll-box-8[
+
+```r
+Tol(p1ut.hs)[1, 1, ]
+```
+
+```
+##   Alopacce   Alopcune   Alopfabr   Arctlute   Arctperi   Auloalbi   Pardlugu 
+##  1.0000000  0.7215282  1.0990803  0.2244719  0.7099974  0.5174699 -2.4202413 
+##   Pardmont   Pardnigr   Pardpull   Trocterr   Zoraspin 
+##  0.8943600  0.2799506  0.3561246  0.8697751  0.5020176
+```
+]
 ---
-
+# Let's add a second gradient
 .small[
 
 ```r
-p2et.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, Pardpull,Trocterr, Zoraspin)
+p2et.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, ... = Pardpull,Trocterr, Zoraspin)
                ~ WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
                poissonff, data = hspider, Crow1positive = FALSE, Rank = 2,
                I.toler = TRUE, Bestof = 2)
 ```
 
 ```
-## Warning in cqo.fitter(x = x, y = y, w = w, offset = offset, etastart =
-## etastart, : I.tolerances = TRUE but the variables making up the latent
-## variable(s) do not appear to be centered.
-```
-
-```
 ## Warning in fn(par, ...): error code in callcqoc = 3
 
 ## Warning in fn(par, ...): error code in callcqoc = 3
@@ -616,36 +1219,379 @@ p2et.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalb
 ## Warning in fn(par, ...): error code in callcqoc = 3
 
 ## Warning in fn(par, ...): error code in callcqoc = 3
-```
 
-```
-## Warning in checkwz(wz, M = M, trace = trace, wzeps = control$wzepsilon): 3
-## diagonal elements of the working weights variable 'wz' have been replaced by
-## 1.819e-12
-```
+## Warning in fn(par, ...): error code in callcqoc = 3
 
-```
-## Warning in cqo.fitter(x = x, y = y, w = w, offset = offset, etastart =
-## etastart, : I.tolerances = TRUE but the variables making up the latent
-## variable(s) do not appear to be centered.
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
+
+## Warning in fn(par, ...): error code in callcqoc = 3
 ```
 ]
 ---
+# 2 Graident Latent Variable Plot 
 
+&lt;img src="mod3_presentation_files/figure-html/2d latent variable plot-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# 3d Perspective plot
 
 ```r
-persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), theta = 120, phi = 20)
+persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), 
+      theta = 120, phi = 20)
 ```
 
-![](mod3_presentation_files/figure-html/cqo 2d persp-1.png)&lt;!-- --&gt;
+&lt;img src="mod3_presentation_files/figure-html/CQO 2d persp plot-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Extended ouput 
+
+.scroll-output[
+
+```r
+coef(p2et.hs)
+```
+
+```
+## 
+## C matrix (constrained/canonical coefficients)
+##             latvar1    latvar2
+## WaterCon -0.3055434 -1.2743724
+## BareSand  0.4548566  0.1572668
+## FallTwig -0.6424939  0.6072466
+## CoveMoss  0.4604092 -0.9255322
+## CoveHerb -0.4161826 -0.2036919
+## ReflLux   1.0748765  0.0502115
+## 
+## B1 and A matrices
+##                      (Intercept)  A.latvar1   A.latvar2
+## loglink(E[Alopacce])  2.34918693  1.7505368  0.28385372
+## loglink(E[Alopcune])  3.65052960 -0.2262756  0.04103486
+## loglink(E[Alopfabr]) -0.87127005  2.6470499  1.02426251
+## loglink(E[Arctlute]) -0.03853201 -1.0361967 -1.51611184
+## loglink(E[Arctperi]) -7.82840869  4.1201710  2.13224139
+## loglink(E[Auloalbi])  2.92971635 -0.6263280 -0.38753106
+## loglink(E[Pardlugu])  1.30355616 -1.4744618  1.85150297
+## loglink(E[Pardmont])  3.58447870  1.0644544 -0.75020248
+## loglink(E[Pardnigr])  4.13542367 -0.6205682 -0.30342210
+## loglink(E[...])       3.75270854 -0.5391683 -1.22562234
+## loglink(E[Trocterr])  5.10923423 -0.7068856 -0.02138793
+## loglink(E[Zoraspin])  2.60636351 -1.0289971 -0.74939839
+## 
+## Optimums and maximums
+##          Optimum.latvar1 Optimum.latvar2    Maximum
+## Alopacce       1.7505368      0.28385372  50.484324
+## Alopcune      -0.2262756      0.04103486  39.526520
+## Alopfabr       2.6470499      1.02426251  23.493488
+## Arctlute      -1.0361967     -1.51611184   5.194588
+## Arctperi       4.1201710      2.13224139  18.778687
+## Auloalbi      -0.6263280     -0.38753106  24.555845
+## Pardlugu      -1.4744618      1.85150297  60.618893
+## Pardmont       1.0644544     -0.75020248  84.134118
+## Pardnigr      -0.6205682     -0.30342210  79.361122
+## ...           -0.5391683     -1.22562234 104.494544
+## Trocterr      -0.7068856     -0.02138793 212.577495
+## Zoraspin      -1.0289971     -0.74939839  30.465047
+## 
+## Tolerances
+##          tol1 tol2
+## Alopacce    1    1
+## Alopcune    1    1
+## Alopfabr    1    1
+## Arctlute    1    1
+## Arctperi    1    1
+## Auloalbi    1    1
+## Pardlugu    1    1
+## Pardmont    1    1
+## Pardnigr    1    1
+## ...         1    1
+## Trocterr    1    1
+## Zoraspin    1    1
+## 
+## Standard deviation of the latent variables (site scores)
+##  latvar1  latvar2 
+## 2.471191 1.155067
+```
+
+]
+---
+# Constained Additive Ordination 
+Besides VGLMs, additive models VGAMs can be fitted.  
+- Syntax similar to CQO 
+- new argument: *df1.nl*: effective non-linear degrees of freedom  
+- controls how smooth the output is (0 = linear)
+.scroll-output[
+
+```r
+set.seed(1)
+# p1cao.hs &lt;- cao(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi, Auloalbi,
+#                       Pardlugu, Pardmont, Pardnigr, Pardpull, Trocterr, Zoraspin) ~
+#                 WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
+#                 poissonff, data = hspider, Rank = 1, df1.nl = 2, Bestof = 10, 
+#                 Crow1positive = FALSE)
+```
+
+]
+---
+# CAO single species plots
+
 
 ---
-class: inverse, center, middle 
 
+---
+# In practice 
+
+- They are not commonly used 
+- individual GLMs outperformed CQO in predicting species ranges (Baselga &amp; Araújo, 2009)
+- CQO better for rare species but GLM predicts better (Bonthoux *et al.* 2013) 
+- mvabund glms differentiated between noise and causal variables better than CQO (Jupke &amp; Schäfer, 2020)
+- CQO and CAO predict better (but still bad) than GLM and GAM to dissimilar conditions (Maguire *et. al.*, 2016) 
+- Applied studies mostly with fish (e.g. Vilizzi et al. (2012), Top *et al.* (2016))
+- "limitations on the number of species, steepness of the learning curve and low numerical stability of the algorithm" (ter Braak &amp; Šmilauer 2015)
+---
+class: inverse, center, middle
 # Latent Variable Models 
-
 ---
+
+# Think back to GLMM 
+
+`\begin{align}
+g(m_{ij}) &amp;= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
+y_{ij}|u_{ij} &amp;\sim F(m_{ij}, \phi)\\
+u_i &amp; \sim N(0, \Sigma)
+\end{align}`
+
+--
+
+--- 
+`\begin{align}
+g(m_{ij}) &amp;= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
+u_i &amp;= z_i^T \lambda_j\\
+y_{ij}|z_{i} &amp;\sim F(m_{ij}, \phi)\\
+z_{i} &amp;\sim N(0, I)
+\end{align}`
+
+--
+`\(\rightarrow\)` basically an ordination of the covariance matrix
+---
+
+```r
+library(gllvm);library(corrplot);library(gclus)
+```
+
+```
+## Loading required package: TMB
+```
+
+```
+## 
+## Attaching package: 'gllvm'
+```
+
+```
+## The following object is masked from 'package:VGAM':
+## 
+##     predict
+```
+
+```
+## The following object is masked from 'package:mvabund':
+## 
+##     coefplot
+```
+
+```
+## The following object is masked from 'package:vegan':
+## 
+##     ordiplot
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     predict, simulate
+```
+
+```
+## corrplot 0.84 loaded
+```
+
+```
+## Loading required package: cluster
+```
+
+```
+## Registered S3 method overwritten by 'gclus':
+##   method         from 
+##   reorder.hclust vegan
+```
+
+```r
+data("antTraits")
+y &lt;- as.matrix(antTraits$abund)
+X &lt;- scale(as.matrix(antTraits$env))
+TR &lt;- antTraits$traits
+```
+---
+# Unconstrained ordination with gllvm
+.scroll-output[
+
+```r
+fit_uo_po &lt;- gllvm(y, family = poisson())
+fit_uo_nb &lt;- gllvm(y, family = "negative.binomial")
+fit_uo_po
+```
+
+```
+## Call: 
+## gllvm(y = y, family = poisson())
+## family: 
+## [1] "poisson"
+## method: 
+## [1] "VA"
+## 
+## log-likelihood:  -2128.631 
+## Residual degrees of freedom:  1108 
+## AIC:  4501.262 
+## AICc:  4178.552 
+## BIC:  4672.208
+```
+
+```r
+fit_uo_nb
+```
+
+```
+## Call: 
+## gllvm(y = y, family = "negative.binomial")
+## family: 
+## [1] "negative.binomial"
+## method: 
+## [1] "VA"
+## 
+## log-likelihood:  -1895.085 
+## Residual degrees of freedom:  1067 
+## AIC:  4116.171 
+## AICc:  3717.186 
+## BIC:  4344.566
+```
+
+```r
+par(mfrow = c(1,2))
+plot(fit_uo_nb, which = 1)
+plot(fit_uo_po, which = 1)
+```
+
+![](mod3_presentation_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+
+```r
+plot(fit_uo_nb, which = 2)
+plot(fit_uo_po, which = 2)
+```
+
+![](mod3_presentation_files/figure-html/unnamed-chunk-14-2.png)&lt;!-- --&gt;
+
+```r
+plot(fit_uo_nb, which = 3)
+plot(fit_uo_po, which = 3)
+```
+
+![](mod3_presentation_files/figure-html/unnamed-chunk-14-3.png)&lt;!-- --&gt;
+]
+---
+# Biplot with gllvm 
+
+&lt;img src="mod3_presentation_files/figure-html/gllvm unconstrained biplot-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Constrained Ordination with gllvm 
+
+```r
+fit_co_nb2 &lt;- gllvm(y, X, num.lv = 2, 
+                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+                    family = "negative.binomial")
+fit_co_nb3 &lt;- gllvm(y, X, num.lv = 3, 
+                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+                    family = "negative.binomial")
+```
+---
+# Biplot of constrained ordination 
+&lt;img src="mod3_presentation_files/figure-html/gllvm constrained biplot-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Coefficient plot 
+&lt;img src="mod3_presentation_files/figure-html/gllvm constrained coefficient plot-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Residual Correlation plot 
+&lt;img src="mod3_presentation_files/figure-html/gllvm Residual Correlation plot-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Fitting a Fourth Corner Model
+
+```r
+fit_4th &lt;- gllvm(y, X, TR, 
+                 family = "negative.binomial", 
+                 num.lv = 2, 
+                 formula = y ~ 
+                   (Bare.ground + Shrub.cover + Volume.lying.CWD) +
+                   (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
+                   (Pilosity + Polymorphism + Webers.length))
+```
+---
+# Fourth Corner Interaction Plot
+&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+---
+# Do Traits matter here? 
+
+```r
+fit_4th2 &lt;- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
+                  formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
+anova(fit_4th, fit_4th2)
+```
+
+```
+## Model  1 :  y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD) 
+## Model  2 :  y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD) + (Bare.ground + Shrub.cover + Volume.lying.CWD):(Pilosity + Polymorphism + Webers.length)
+```
+
+```
+##   Resid.Df        D Df.diff   P.value
+## 1     1064  0.00000       0          
+## 2     1046 28.64264      18 0.0529252
+```
+---
+
 class: inverse, center, middle 
+
 
 # Copulas 
 
@@ -664,7 +1610,10 @@ class: inverse, center, middle
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>var slideshow = remark.create({
-"countIncrementalSlides": false
+"countIncrementalSlides": false,
+"navigation": {
+"scroll": false
+}
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));
