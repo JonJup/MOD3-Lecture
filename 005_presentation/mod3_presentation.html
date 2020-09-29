@@ -17,7 +17,7 @@ class: center, middle, inverse, title-slide
 # Advances in the analysis of multivariate ecological data
 ## MOD3: Advanced data science
 ### Jonathan Jupke
-### University of Koblenz Landau
+### University of Koblenz-Landau
 ### 2021/01/07
 
 ---
@@ -31,10 +31,7 @@ class: center, middle, inverse, title-slide
 
 
 
-
-
-
-&lt;!--TODO abstand zwischen Bullets--&gt;  
+&lt;!--TODO Abstand zwischen Bullets--&gt;  
 &lt;!--# TODO serial slide--&gt;   
 &lt;!--# TODO bullet color--&gt;  
 
@@ -62,7 +59,7 @@ class: inverse, center, middle
 
 ---
 
-# ... or what's old
+# ... and what's old? 
 
 --
 
@@ -1408,192 +1405,153 @@ z_{i} &amp;\sim N(0, I)
 ---
 
 ```r
-library(gllvm);library(corrplot);library(gclus)
-```
-
-```
-## Loading required package: TMB
-```
-
-```
-## 
-## Attaching package: 'gllvm'
-```
-
-```
-## The following object is masked from 'package:VGAM':
-## 
-##     predict
-```
-
-```
-## The following object is masked from 'package:mvabund':
-## 
-##     coefplot
-```
-
-```
-## The following object is masked from 'package:vegan':
-## 
-##     ordiplot
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     predict, simulate
-```
-
-```
-## corrplot 0.84 loaded
-```
-
-```
-## Loading required package: cluster
-```
-
-```
-## Registered S3 method overwritten by 'gclus':
-##   method         from 
-##   reorder.hclust vegan
-```
-
-```r
-data("antTraits")
-y &lt;- as.matrix(antTraits$abund)
-X &lt;- scale(as.matrix(antTraits$env))
-TR &lt;- antTraits$traits
+# library(gllvm);library(corrplot);library(gclus)
+# data("antTraits")
+# y &lt;- as.matrix(antTraits$abund)
+# X &lt;- scale(as.matrix(antTraits$env))
+# TR &lt;- antTraits$traits
 ```
 ---
 # Unconstrained ordination with gllvm
 .scroll-output[
 
 ```r
-fit_uo_po &lt;- gllvm(y, family = poisson())
-fit_uo_nb &lt;- gllvm(y, family = "negative.binomial")
-fit_uo_po
+# fit_uo_po &lt;- gllvm(y, family = poisson())
+# fit_uo_nb &lt;- gllvm(y, family = "negative.binomial")
+# fit_uo_po
+# fit_uo_nb
+# par(mfrow = c(1,2))
+# plot(fit_uo_nb, which = 1)
+# plot(fit_uo_po, which = 1)
+# plot(fit_uo_nb, which = 2)
+# plot(fit_uo_po, which = 2)
+# plot(fit_uo_nb, which = 3)
+# plot(fit_uo_po, which = 3)
 ```
-
-```
-## Call: 
-## gllvm(y = y, family = poisson())
-## family: 
-## [1] "poisson"
-## method: 
-## [1] "VA"
-## 
-## log-likelihood:  -2128.631 
-## Residual degrees of freedom:  1108 
-## AIC:  4501.262 
-## AICc:  4178.552 
-## BIC:  4672.208
-```
-
-```r
-fit_uo_nb
-```
-
-```
-## Call: 
-## gllvm(y = y, family = "negative.binomial")
-## family: 
-## [1] "negative.binomial"
-## method: 
-## [1] "VA"
-## 
-## log-likelihood:  -1895.085 
-## Residual degrees of freedom:  1067 
-## AIC:  4116.171 
-## AICc:  3717.186 
-## BIC:  4344.566
-```
-
-```r
-par(mfrow = c(1,2))
-plot(fit_uo_nb, which = 1)
-plot(fit_uo_po, which = 1)
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
-
-```r
-plot(fit_uo_nb, which = 2)
-plot(fit_uo_po, which = 2)
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-14-2.png)&lt;!-- --&gt;
-
-```r
-plot(fit_uo_nb, which = 3)
-plot(fit_uo_po, which = 3)
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-14-3.png)&lt;!-- --&gt;
 ]
 ---
 # Biplot with gllvm 
 
-&lt;img src="mod3_presentation_files/figure-html/gllvm unconstrained biplot-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Constrained Ordination with gllvm 
 
 ```r
-fit_co_nb2 &lt;- gllvm(y, X, num.lv = 2, 
-                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
-                    family = "negative.binomial")
-fit_co_nb3 &lt;- gllvm(y, X, num.lv = 3, 
-                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
-                    family = "negative.binomial")
+# fit_co_nb2 &lt;- gllvm(y, X, num.lv = 2, 
+#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+#                     family = "negative.binomial")
+# fit_co_nb3 &lt;- gllvm(y, X, num.lv = 3, 
+#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+#                     family = "negative.binomial")
 ```
 ---
 # Biplot of constrained ordination 
-&lt;img src="mod3_presentation_files/figure-html/gllvm constrained biplot-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Coefficient plot 
-&lt;img src="mod3_presentation_files/figure-html/gllvm constrained coefficient plot-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Residual Correlation plot 
-&lt;img src="mod3_presentation_files/figure-html/gllvm Residual Correlation plot-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Fitting a Fourth Corner Model
 
 ```r
-fit_4th &lt;- gllvm(y, X, TR, 
-                 family = "negative.binomial", 
-                 num.lv = 2, 
-                 formula = y ~ 
-                   (Bare.ground + Shrub.cover + Volume.lying.CWD) +
-                   (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
-                   (Pilosity + Polymorphism + Webers.length))
+# fit_4th &lt;- gllvm(y, X, TR, 
+#                  family = "negative.binomial", 
+#                  num.lv = 2, 
+#                  formula = y ~ 
+#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) +
+#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
+#                    (Pilosity + Polymorphism + Webers.length))
 ```
 ---
 # Fourth Corner Interaction Plot
-&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Do Traits matter here? 
 
 ```r
-fit_4th2 &lt;- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
-                  formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
-anova(fit_4th, fit_4th2)
-```
-
-```
-## Model  1 :  y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD) 
-## Model  2 :  y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD) + (Bare.ground + Shrub.cover + Volume.lying.CWD):(Pilosity + Polymorphism + Webers.length)
-```
-
-```
-##   Resid.Df        D Df.diff   P.value
-## 1     1064  0.00000       0          
-## 2     1046 28.64264      18 0.0529252
+# fit_4th2 &lt;- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
+#                   formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
+# anova(fit_4th, fit_4th2)
 ```
 ---
+# Uncertainty in latent variable models
+- method proposed by Hoegh &amp; Roberts (2020)
+- R package UncertainOrd
 
+---
 class: inverse, center, middle 
-
-
 # Copulas 
+---
+# What are Copulas? 
+- a Copula is a function `\(C()\)` that .blue[couples] marginal distributions
+
+--
+
+- they combine marginal distributions `\(f_1, ..., f_d\)` to a d-dimensional multivariate distribution `\(h()\)`
+
+--
+
+- Formally expressed in Sklar's Theorem (Sklar, 1959): 
+$$ h(x) = C(f_1(x), ..., f_d(x))$$
+--
+
+- the marginals `\(f_1,...,f_d\)` must be standard uniform `\(U(0,1)\)` 
+
+--
+
+- all marginals can be mapped to `\(U(0,1)\)` with probability integral transform (PIT)
+
+---
+background-image: url("figures/Anderson2019_1.png")
+background-size: 700px
+background-position: 50% 80%
+# PIT continuous to discrete 
+.footnote[Anderson *et al.* (2019)]
+---
+background-image: url("figures/Anderson2019_2.png")
+background-size: 700px
+background-position: 50% 80%
+# Pit discrete to continuous
+.footnote[Anderson *et al.* (2019)]
+
+---
+
+# Examples of Copulas
+.content-box-blue[Independence Copula]
+ 
+`$$\Pi(\mathbf{u}) = \prod_{j=1}^du_j\ , \ \ u\ \epsilon\ [0,1]^d$$`
+.content-box-blue[bivariate Frank Copula]  
+`$$C_\theta^F (\mathbf{u}) = - \frac{1}{\theta}\ \log \bigg(1 + \frac{(exp(-\theta u_1)-1)(exp(-\theta u_2)-1)}{exp(-\theta)-1} \bigg)$$` 
+.content-box-blue[Calyton Copula]  
+$$C_\theta^C (\mathbf{u}) = max(u_1^{-\theta} + u_2^{-\theta} -1,0 )^{-1/\theta} $$
+---
+background-image: url("figures/Anderson2019_4.png")
+background-size: 500px
+background-position: 50% 90%
+# What's it good for? 
+- disentangle dependence and marginals 
+- correlation coefficients are dependent of marginals as dependence structures
+
+
+
+.footnote[Anderson *et al.* (2019)]
+---
+# How can we use it? 
+- Roadmap provided by Anderson *et al.* (2019)
+
+---
+---
+background-image: url("figures/Anderson2019_3.png")
+background-size: 700px
+background-position: 50% 80%
+# Simulate from copulas
+.footnote[Anderson *et al.* (2019)]
+---
+# Tails associations 
+
 
 ---
 class: inverse, center, middle 

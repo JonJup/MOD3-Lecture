@@ -2,7 +2,7 @@
 title: "Advances in the analysis of multivariate ecological data"
 subtitle: "MOD3: Advanced data science"
 author: "Jonathan Jupke"
-institute: "University of Koblenz Landau"
+institute: "University of Koblenz-Landau"
 date: "2021/01/07"
 output:
   xaringan::moon_reader:
@@ -25,10 +25,7 @@ output:
 options(htmltools.dir.version = FALSE)
 ```
 
-
-
-
-<!--TODO abstand zwischen Bullets-->  
+<!--TODO Abstand zwischen Bullets-->  
 <!--# TODO serial slide-->   
 <!--# TODO bullet color-->  
 
@@ -56,7 +53,7 @@ class: inverse, center, middle
 
 ---
 
-# ... or what's old
+# ... and what's old? 
 
 --
 
@@ -629,100 +626,188 @@ z_{i} &\sim N(0, I)
 $\rightarrow$ basically an ordination of the covariance matrix
 ---
 ```{r}
-library(gllvm);library(corrplot);library(gclus)
-data("antTraits")
-y <- as.matrix(antTraits$abund)
-X <- scale(as.matrix(antTraits$env))
-TR <- antTraits$traits
+# library(gllvm);library(corrplot);library(gclus)
+# data("antTraits")
+# y <- as.matrix(antTraits$abund)
+# X <- scale(as.matrix(antTraits$env))
+# TR <- antTraits$traits
 ```
 ---
 # Unconstrained ordination with gllvm
 .scroll-output[
 ```{r}
-fit_uo_po <- gllvm(y, family = poisson())
-fit_uo_nb <- gllvm(y, family = "negative.binomial")
-fit_uo_po
-fit_uo_nb
-par(mfrow = c(1,2))
-plot(fit_uo_nb, which = 1)
-plot(fit_uo_po, which = 1)
-plot(fit_uo_nb, which = 2)
-plot(fit_uo_po, which = 2)
-plot(fit_uo_nb, which = 3)
-plot(fit_uo_po, which = 3)
+# fit_uo_po <- gllvm(y, family = poisson())
+# fit_uo_nb <- gllvm(y, family = "negative.binomial")
+# fit_uo_po
+# fit_uo_nb
+# par(mfrow = c(1,2))
+# plot(fit_uo_nb, which = 1)
+# plot(fit_uo_po, which = 1)
+# plot(fit_uo_nb, which = 2)
+# plot(fit_uo_po, which = 2)
+# plot(fit_uo_nb, which = 3)
+# plot(fit_uo_po, which = 3)
 ```
 ]
 ---
 # Biplot with gllvm 
 
 ```{r gllvm unconstrained biplot, fig.align = "center", fig.height=7, echo = F}
-ordiplot(fit_uo_nb, biplot = TRUE, ind.spp = 15, xlim = c(-3,3) , ylim = c(-2, 1.6))
+# ordiplot(fit_uo_nb, biplot = TRUE, ind.spp = 15, xlim = c(-3,3) , ylim = c(-2, 1.6))
 ```
 ---
 # Constrained Ordination with gllvm 
 ```{r}
-fit_co_nb2 <- gllvm(y, X, num.lv = 2, 
-                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
-                    family = "negative.binomial")
-fit_co_nb3 <- gllvm(y, X, num.lv = 3, 
-                    formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
-                    family = "negative.binomial")
+# fit_co_nb2 <- gllvm(y, X, num.lv = 2, 
+#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+#                     family = "negative.binomial")
+# fit_co_nb3 <- gllvm(y, X, num.lv = 3, 
+#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+#                     family = "negative.binomial")
 ```
 ---
 # Biplot of constrained ordination 
 ```{r gllvm constrained biplot, echo = F, fig.align ="center"}
-ordiplot(fit_co_nb3, biplot = T)
+# ordiplot(fit_co_nb3, biplot = T)
 ```
 ---
 # Coefficient plot 
 ```{r gllvm constrained coefficient plot, echo = F, fig.align = "center", fig.width = 10}
-coefplot(fit_co_nb3, cex.ylab = 0.7, mar = c(4,9,2,1), 
-         xlim.list = list(NULL, NULL, c(-4,4)))
+# coefplot(fit_co_nb3, cex.ylab = 0.7, mar = c(4,9,2,1), 
+#          xlim.list = list(NULL, NULL, c(-4,4)))
 
 ```
 ---
 # Residual Correlation plot 
 ```{r gllvm Residual Correlation plot, echo = F, fig.align="center"}
-cr <- getResidualCor(fit_co_nb3)
-par(mfrow = c(1,1))
-corrplot(cr[order.single(cr), order.single(cr)], diag = FALSE, type = "lower", method = "square", tl.cex = 0.8, tl.srt = 45, tl.col = "red")
+# cr <- getResidualCor(fit_co_nb3)
+# par(mfrow = c(1,1))
+# corrplot(cr[order.single(cr), order.single(cr)], diag = FALSE, type = "lower", method = "square", tl.cex = 0.8, tl.srt = 45, tl.col = "red")
 ```
 ---
 # Fitting a Fourth Corner Model
-```{r}
-fit_4th <- gllvm(y, X, TR, 
-                 family = "negative.binomial", 
-                 num.lv = 2, 
-                 formula = y ~ 
-                   (Bare.ground + Shrub.cover + Volume.lying.CWD) +
-                   (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
-                   (Pilosity + Polymorphism + Webers.length))
+```{r fitting 4th corner gllvm}
+# fit_4th <- gllvm(y, X, TR, 
+#                  family = "negative.binomial", 
+#                  num.lv = 2, 
+#                  formula = y ~ 
+#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) +
+#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
+#                    (Pilosity + Polymorphism + Webers.length))
 
 ```
 ---
 # Fourth Corner Interaction Plot
 ```{r, echo = F, fig.align = "center"}
-fourth <- fit_4th$fourth.corner
-colort <- colorRampPalette(c("blue", "white", "red"))
-a <- max( abs(fourth) )
-plot.4th <- lattice::levelplot((as.matrix(fourth)), xlab = "Environmental Variables", 
-                      ylab = "Species traits", col.regions = colort(100), cex.lab =1.3,
-                      at = seq(-a, a, length = 100), scales = list(x = list(rot = 45)))
-plot.4th
+# fourth <- fit_4th$fourth.corner
+# colort <- colorRampPalette(c("blue", "white", "red"))
+# a <- max( abs(fourth) )
+# plot.4th <- lattice::levelplot((as.matrix(fourth)), xlab = "Environmental Variables", 
+#                       ylab = "Species traits", col.regions = colort(100), cex.lab =1.3,
+#                       at = seq(-a, a, length = 100), scales = list(x = list(rot = 45)))
+# plot.4th
 ```
 ---
 # Do Traits matter here? 
 ```{r}
-fit_4th2 <- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
-                  formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
-anova(fit_4th, fit_4th2)
+# fit_4th2 <- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
+#                   formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
+# anova(fit_4th, fit_4th2)
 ```
 ---
+# Uncertainty in latent variable models
+- method proposed by Hoegh & Roberts (2020)
+- R package UncertainOrd
 
+---
 class: inverse, center, middle 
-
-
 # Copulas 
+---
+# What are Copulas? 
+- a Copula is a function $C()$ that .blue[couples] marginal distributions
+
+--
+
+- they combine marginal distributions $f_1, ..., f_d$ to a d-dimensional multivariate distribution $h()$
+
+--
+
+- Formally expressed in Sklar's Theorem (Sklar, 1959): 
+$$ h(x) = C(f_1(x), ..., f_d(x))$$
+--
+
+- the marginals $f_1,...,f_d$ must be standard uniform $U(0,1)$ 
+
+--
+
+- all marginals can be mapped to $U(0,1)$ with probability integral transform (PIT)
+
+---
+background-image: url("figures/Anderson2019_1.png")
+background-size: 700px
+background-position: 50% 80%
+# PIT continuous to discrete 
+.footnote[Anderson *et al.* (2019)]
+---
+background-image: url("figures/Anderson2019_2.png")
+background-size: 700px
+background-position: 50% 80%
+# Pit discrete to continuous
+.footnote[Anderson *et al.* (2019)]
+
+---
+
+# Examples of Copulas
+.content-box-blue[Independence Copula]
+ 
+$$\Pi(\mathbf{u}) = \prod_{j=1}^du_j\ , \ \ u\ \epsilon\ [0,1]^d$$
+.content-box-blue[bivariate Frank Copula]  
+$$C_\theta^F (\mathbf{u}) = - \frac{1}{\theta}\ \log \bigg(1 + \frac{(exp(-\theta u_1)-1)(exp(-\theta u_2)-1)}{exp(-\theta)-1} \bigg)$$ 
+.content-box-blue[Calyton Copula]  
+$$C_\theta^C (\mathbf{u}) = max(u_1^{-\theta} + u_2^{-\theta} -1,0 )^{-1/\theta} $$
+---
+background-image: url("figures/Anderson2019_4.png")
+background-size: 500px
+background-position: 50% 90%
+# What's it good for? 
+- disentangle dependence and marginals 
+- correlation coefficients are dependent of marginals as dependence structures
+
+
+
+.footnote[Anderson *et al.* (2019)]
+---
+# How can we use it? 
+- Roadmap provided by Anderson *et al.* (2019)
+i) identify marginals  
+
+--
+
+ii) Identify significant associations among species to model
+
+--
+
+iii) Fit Copula model 
+
+--
+
+iv) draw random samples from copulas 
+
+--
+
+v)
+
+
+
+---
+background-image: url("figures/Anderson2019_3.png")
+background-size: 700px
+background-position: 50% 80%
+# Simulate from copulas
+.footnote[Anderson *et al.* (2019)]
+---
+# Tails associations 
+
 
 ---
 class: inverse, center, middle 
