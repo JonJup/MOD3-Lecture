@@ -718,7 +718,15 @@ $\rightarrow$ basically an ordination of the covariance matrix
 # Uncertainty in latent variable models
 - method proposed by Hoegh & Roberts (2020)
 - R package UncertainOrd
+---
+class: inverse, center, middle 
 
+# Hierarchical modeling of species communities 
+---
+---
+# Association $!=$ Interaction 
+
+Dorman 2018 and Blanchet 2020
 ---
 class: inverse, center, middle 
 # Copulas 
@@ -778,7 +786,8 @@ background-position: 50% 90%
 .footnote[Anderson *et al.* (2019)]
 ---
 # How can we use it? 
-- Roadmap provided by Anderson *et al.* (2019)
+- Roadmap provided by Anderson *et al.* (2019)  
+
 i) identify marginals  
 
 --
@@ -793,10 +802,7 @@ iii) Fit Copula model
 
 iv) draw random samples from copulas 
 
---
-
-v)
-
+---
 
 
 ---
@@ -806,14 +812,66 @@ background-position: 50% 80%
 # Simulate from copulas
 .footnote[Anderson *et al.* (2019)]
 ---
+background-image: url("figures/gosh2020b_1.png")
+background-size: 700px
+background-position: 50% 80%
+
 # Tails associations 
 
+.footnote[Gosh *et al.* (2020b)]
+---
+background-image: url("figures/gosh2020b_2.png")
+background-size: 700px
+background-position: 50% 80%
+
+# Tails associations 
+
+.footnote[Gosh *et al.* (2020b)]
 
 ---
-class: inverse, center, middle 
+background-image: url("figures/popovic2019_1.png")
+background-size: 500px
+background-position: 60% 80%
+# Disentangaling species associations
 
-# Hierarchical modeling of species communities 
+- Popovic *et al.* 2019 and ecoCopula package
 
+- Three reasons for two species to co-occur: 
+  + environment
+  + mediator species
+  + direct association 
+
+.footnote[Popovic *et al.* (2019)]
+---
+# Gaussian copula graphical models
+
+- graphical models estimate the precision matrix $\Omega$ 
+
+--
+
+- $\Omega = \Sigma^{-1}
+
+--
+
+- Graphical Models require normal responses
+
+--
+
+- Gaussian Copula models can "transform" to normality
+---
+# ecoCopula Example
+.scroll-box-16[
+```{r ecoCopula}
+# devtools::install_github("gordy2x/ecoCopula")
+library(ecoCopula)
+gcgm_obj_0 <- cgr(tas.nb,lambda=0)
+gcgm_obj_1 <- cgr(tas.nb,lambda=.1)
+gcgm_obj_2 <- cgr(tas.nb,lambda=.2)
+plot(gcgm_obj_0)
+plot(gcgm_obj_1)
+plot(gcgm_obj_2)
+```
+]
 ---
 class: inverse, center, middle 
 

@@ -7,8 +7,8 @@
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <script src="libs/kePrint/kePrint.js"></script>
     <link href="libs/lightable/lightable.css" rel="stylesheet" />
-    <link rel="stylesheet" href="libs\sydney.css" type="text/css" />
-    <link rel="stylesheet" href="libs\sydney-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="libs/sydney.css" type="text/css" />
+    <link rel="stylesheet" href="libs/sydney-fonts.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
@@ -1480,7 +1480,15 @@ z_{i} &amp;\sim N(0, I)
 # Uncertainty in latent variable models
 - method proposed by Hoegh &amp; Roberts (2020)
 - R package UncertainOrd
+---
+class: inverse, center, middle 
 
+# Hierarchical modeling of species communities 
+---
+---
+# Association `\(!=\)` Interaction 
+
+Dorman 2018 and Blanchet 2020
 ---
 class: inverse, center, middle 
 # Copulas 
@@ -1540,9 +1548,25 @@ background-position: 50% 90%
 .footnote[Anderson *et al.* (2019)]
 ---
 # How can we use it? 
-- Roadmap provided by Anderson *et al.* (2019)
+- Roadmap provided by Anderson *et al.* (2019)  
+
+i) identify marginals  
+
+--
+
+ii) Identify significant associations among species to model
+
+--
+
+iii) Fit Copula model 
+
+--
+
+iv) draw random samples from copulas 
 
 ---
+
+
 ---
 background-image: url("figures/Anderson2019_3.png")
 background-size: 700px
@@ -1550,14 +1574,103 @@ background-position: 50% 80%
 # Simulate from copulas
 .footnote[Anderson *et al.* (2019)]
 ---
+background-image: url("figures/gosh2020b_1.png")
+background-size: 700px
+background-position: 50% 80%
+
 # Tails associations 
 
+.footnote[Gosh *et al.* (2020b)]
+---
+background-image: url("figures/gosh2020b_2.png")
+background-size: 700px
+background-position: 50% 80%
+
+# Tails associations 
+
+.footnote[Gosh *et al.* (2020b)]
 
 ---
-class: inverse, center, middle 
+background-image: url("figures/popovic2019_1.png")
+background-size: 500px
+background-position: 60% 80%
+# Disentangaling species associations
 
-# Hierarchical modeling of species communities 
+- Popovic *et al.* 2019 and ecoCopula package
 
+- Three reasons for two species to co-occur: 
+  + environment
+  + mediator species
+  + direct association 
+
+.footnote[Popovic *et al.* (2019)]
+---
+# Gaussian copula graphical models
+
+- graphical models estimate the precision matrix `\(\Omega\)` 
+
+--
+
+- $\Omega = \Sigma^{-1}
+
+--
+
+- Graphical Models require normal responses
+
+--
+
+- Gaussian Copula models can "transform" to normality
+---
+# ecoCopula Example
+.scroll-box-16[
+
+```r
+# devtools::install_github("gordy2x/ecoCopula")
+library(ecoCopula)
+gcgm_obj_0 &lt;- cgr(tas.nb,lambda=0)
+```
+
+```
+## Warning in cgr(tas.nb, lambda = 0): 'best' model selected among supplied lambda
+## only
+```
+
+```r
+gcgm_obj_1 &lt;- cgr(tas.nb,lambda=.1)
+```
+
+```
+## Warning in cgr(tas.nb, lambda = 0.1): 'best' model selected among supplied
+## lambda only
+```
+
+```r
+gcgm_obj_2 &lt;- cgr(tas.nb,lambda=.2)
+```
+
+```
+## Warning in cgr(tas.nb, lambda = 0.2): 'best' model selected among supplied
+## lambda only
+```
+
+```r
+plot(gcgm_obj_0)
+```
+
+![](mod3_presentation_files/figure-html/ecoCopula-1.png)&lt;!-- --&gt;
+
+```r
+plot(gcgm_obj_1)
+```
+
+![](mod3_presentation_files/figure-html/ecoCopula-2.png)&lt;!-- --&gt;
+
+```r
+plot(gcgm_obj_2)
+```
+
+![](mod3_presentation_files/figure-html/ecoCopula-3.png)&lt;!-- --&gt;
+]
 ---
 class: inverse, center, middle 
 
