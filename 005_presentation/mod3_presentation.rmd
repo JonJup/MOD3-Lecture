@@ -23,6 +23,8 @@ output:
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
+library(corrplot)
+library(UncertainOrd)
 ```
 
 <!--TODO Abstand zwischen Bullets-->  
@@ -603,27 +605,197 @@ set.seed(1)
 class: inverse, center, middle
 # Latent Variable Models 
 ---
+# Random-effects ordination 
 
-# Think back to GLMM 
+.footnote[Walker & Jackson (2011)]
 
-\begin{align}
-g(m_{ij}) &= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
-y_{ij}|u_{ij} &\sim F(m_{ij}, \phi)\\
-u_i & \sim N(0, \Sigma)
-\end{align}
+- unconstrained ordination through random effect model  
 
 --
 
---- 
-\begin{align}
-g(m_{ij}) &= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
-u_i &= z_i^T \lambda_j\\
-y_{ij}|z_{i} &\sim F(m_{ij}, \phi)\\
-z_{i} &\sim N(0, I)
-\end{align}
+- $\hat{y_i} = a + \mathbf{B}\mathbf{x}_i$
 
 --
-$\rightarrow$ basically an ordination of the covariance matrix
+
+- $a = [a_i]$ is a column vector of intercepts with one for each variable
+
+--
+
+- $B=[b_{jk}]$ matrix of coefficients relating observed variables to axes (latent variables)
+
+--
+
+- assume standard normal distribution of axis scores
+
+--
+
+- fit $\mathbf{B}$ and $x_i$ iteratively with ML 
+
+--
+
+- only presence-absence or normal distribution
+
+--
+
+- implemented in reo R package
+
+
+
+---
+
+# BORAL
+
+- Hui *et al* (2015) extend the basic idea of Walker & Jackson (2011) to GLMs 
+
+--
+
+- Hui (2016): Bayesian Ordination and Regression Analysis
+
+--
+
+- (un)constrained Ordination with MCMC estimation 
+
+--
+
+- latent variables are biotic associations or missing covariates.
+
+--
+
+- $log(\mu_{ij}) = \alpha_i + \theta_{0j} + z_{i1} \theta_{1j} + z_{i2}\theta_{2j}=\alpha_i + \theta_{0j} +\mathbf{z_i^T}\mathbf{\theta_j}$
+
+--
+
+- Priors:
+- $\theta_{0j} \sim N(0,100)$
+- $\theta_{\lambda} \sim U(0,50)\ \forall\ \theta_{\lambda}:0\notin \theta_{\lambda}$ 
+- $\theta_j; \alpha_i \sim N(0,20)$
+---
+
+# Co-occurence is not Interaction 
+
+.footnote[Blanchet *et al.* 2020]
+
+- Species occurrences depend on the environment  
+
+--
+
+- Indirect species associations   
+
+--
+
+- Sampling scale influences measures of co-occurrence  
+
+--
+
+- Appropriate statistical inference requires a very large sample size  
+
+--
+
+- Interactions are often asymmetric   
+---
+# BORAL in Action
+.scroll-output[
+```{r echo=FALSE}
+fit_unconstrained_po <-readRDS("../003_processed_data/boral_unconstrained_poisson.RDS")
+```
+
+```{r}
+pacman::p_load(boral, rjags, mvabund, UncertainOrd)
+data(spider)
+Y <- spider$abund
+#fit_unconstrained_po <- boral(y = Y, family = "poisson", lv.control = list(num.lv = 2),row.eff = "fixed",save.model=TRUE)
+summary(fit_unconstrained_po)
+```
+]
+---
+# Check model assumptions
+
+```{r check boral 1, fig.align="center", fig.height=7, fig.width=7, echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit_unconstrained_po)
+```
+---
+# Check model assumptions - NB
+```{r check boral 2, fig.align="center", fig.height=7, fig.width=7, echo=FALSE}
+fit_unconstrained_nb <-readRDS("../003_processed_data/boral_unconstrained_negbinom.RDS")
+par(mfrow=c(2,2))
+plot(fit_unconstrained_nb)
+```
+---
+# Ordination Diagram
+```{r ordiplot boral 1, fig.align="center", fig.height=7, fig.width=7, echo=FALSE}
+suppressMessages(lvsplot(fit_unconstrained_nb))
+```
+---
+```{r boral load contrained, echo=FALSE}
+fit_constrained_nb <- readRDS("../003_processed_data/boral_constrained_negbinom.RDS")
+```
+
+# Constrained Ordination 
+.scroll-output[
+```{r boral fit constrained}
+X <- scale(spider$x)
+#fit_constrained_nb <- boral(y = Y, X = X, family = "negative.binomial", lv.control = list(num.lv = 2), save.model = TRUE)
+summary(fit_constrained_nb)
+```
+]
+---
+# Correlation plots 
+```{r boral correlation plots, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
+envcors <- get.enviro.cor(fit_constrained_nb)
+rescors <- get.residual.cor(fit_constrained_nb) 
+par(mfrow=c(1,1))
+corrplot(
+        envcors$sig.cor,
+        type = "lower",
+        diag = FALSE,
+        title =  "Correlations due to covariates", 
+        mar = c(3,0.5,2,1), tl.srt = 45) 
+```
+---
+# Correlation plots 
+```{r boral correlation plots, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
+envcors <- get.enviro.cor(fit_constrained_nb)
+rescors <- get.residual.cor(fit_constrained_nb) 
+par(mfrow=c(1,1))
+corrplot(
+        rescors$sig.cor,
+        type = "lower",
+        diag = FALSE,
+        title =  "Residual correlations",
+        mar = c(3, 0.5, 2, 1),
+        tl.srt = 45
+)
+```
+---
+# Uncertainty in latent variable models
+- R package UncertainOrd (Hoegh & Roberts, 2020)
+- based on 95% credible intervals
+
+```{r load uncertainord file, echo=FALSE}
+uncertain_plot <- readRDS("../003_processed_data/boral_uncertainplot.RDS")
+par(mfrow=c(1,1))
+```
+.scroll-output[
+```{r, echo=FALSE}
+print(uncertain_plot)
+```
+]
+---
+# Can we include traits in this? 
+
+- as parameters for the priors  
+
+$$\theta_{ij} \sim N(t_j^T \kappa_0, \mathbf{\sigma}^2_0)$$
+$$\beta_{jk} \sim N(\mathbf{t_j^T \kappa_K, \sigma^2_k})$$
+
+---
+# GLLVM package 
+
+- see Nikku *et al.* (2019b)
+
+- Uses recenet advances in ML estimation (Hui *et al.* 2017a; Niku *et al.*, 2017), computation (Kristensen et al., 2016), and parametrization (Niku et al., 2019a) to speed up computations. 
+
 ---
 ```{r}
 # library(gllvm);library(corrplot);library(gclus)
@@ -714,19 +886,11 @@ $\rightarrow$ basically an ordination of the covariance matrix
 #                   formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
 # anova(fit_4th, fit_4th2)
 ```
----
-# Uncertainty in latent variable models
-- method proposed by Hoegh & Roberts (2020)
-- R package UncertainOrd
+
 ---
 class: inverse, center, middle 
 
 # Hierarchical modeling of species communities 
----
----
-# Association $!=$ Interaction 
-
-Dorman 2018 and Blanchet 2020
 ---
 class: inverse, center, middle 
 # Copulas 
@@ -860,16 +1024,20 @@ background-position: 60% 80%
 - Gaussian Copula models can "transform" to normality
 ---
 # ecoCopula Example
-.scroll-box-16[
+.scroll-box-20[
 ```{r ecoCopula}
 # devtools::install_github("gordy2x/ecoCopula")
 library(ecoCopula)
 gcgm_obj_0 <- cgr(tas.nb,lambda=0)
-gcgm_obj_1 <- cgr(tas.nb,lambda=.1)
-gcgm_obj_2 <- cgr(tas.nb,lambda=.2)
 plot(gcgm_obj_0)
+gcgm_obj_1 <- cgr(tas.nb,lambda=.1)
 plot(gcgm_obj_1)
+gcgm_obj_2 <- cgr(tas.nb,lambda=.2)
 plot(gcgm_obj_2)
+gcgm_obj_3 <- cgr(tas.nb,lambda=seq(from = 0, to = 0.2,by = 0.01))
+plot(gcgm_obj_3)
+
+
 ```
 ]
 ---
