@@ -31,25 +31,38 @@ class: center, middle, inverse, title-slide
 
 
 
-&lt;!--TODO Abstand zwischen Bullets--&gt;  
+
+
+```r
+#TODO Abstand zwischen Bullets
+#TODO Abstand zwischen Bullets
+#TODO serial slide
+#TODO adjust images 
+#TODO Latent variable intro slide 
+```
+
+---
+
+
+&lt;!--TODO --&gt;  
 &lt;!--# TODO serial slide--&gt;   
 &lt;!--# TODO bullet color--&gt;  
 
 # Plan for today 
 
-- What’s new in multivariate analysis?
+1. What’s new in multivariate analysis?
 
-- mvabund
+2. mvabund
 
-- Vector GLM/GAM
+3. Vector GLM/GAM
 
-- Latent Variable Models 
+4. Latent Variable Models 
 
-- Copulas 
+5. Hierarchical Modeling of Species Communities
 
-- Hierarchical Modeling of Species Communities
+6. Copulas 
 
-- Neural Hierarchical Models 
+7. Neural Hierarchical Models 
 
 
 ---
@@ -59,7 +72,7 @@ class: inverse, center, middle
 
 ---
 
-# ... and what's old? 
+# ... well first, what's old? 
 
 --
 
@@ -101,18 +114,23 @@ plot(rda_object)
 
 They are based on some notion of a distance metric
 
-##fixed 
+--
+
+## fixed
+
 - PCA and RDA: Euclidean 
 - CA and CCA: `\(\chi^2\)`-distance
 
 --
 
-##flexible 
+## flexible
+
 - NMDS 
 - PCoA
 - dbRDA
 
 ---
+
 # How does that differ from the univerate and why? 
 
 --
@@ -125,7 +143,7 @@ In univariate analyses we mostly use models:
 
 --
 
-`\(\rightarrow\)` why not in multivariate analyses? 
+`\(\rightarrow\)` .blue[**why not in multivariate analyses?**]
 
 ---
 class: middle, center
@@ -133,60 +151,88 @@ class: middle, center
 &lt;img src="old_pc.gif" style="display: block; margin: auto;" /&gt;
 
 ---
+# Notation 
+`\(s=1,...,S\)` species   
+`\(i=1,...,N\)` sites   
+`\(p=1,...,P\)` environmental variables   
+`\(r=1,...,R\)` latent variables   
+---
+
 # The idea is old 
 
 The Gaussian response model: 
-$$Y_i = ce^{- \frac{(X_i - u)^2}{2t^2}} $$
+$$Y_i = c\ exp\bigg(- \frac{(X_i - u)^2}{2t^2}\bigg) $$
 --
 Can be rewritten as a GLM:
-`$$Y_i = exp(ln(c) - \frac{u^2}{2t^2} + \frac{u}{t^2}x_i - \frac{1}{2t^2}x^2_i) = exp(b_1 + b_2 x_i + b_3 x_i^2)$$`
+`$$Y_i = exp \bigg(ln(c) - \frac{u^2}{2t^2} + \frac{u}{t^2}x_i - \frac{1}{2t^2}x^2_i\bigg) = exp(b_1 + b_2 x_i + b_3 x_i^2)$$`
 --
 with 
-$$ t = \frac{1}{\sqrt{-2b_3}}; u = \frac{-b_2}{2b_3}; c =     exp(b_1 - \frac{b_2^2}{4b_3})$$ 
+$$ t = \frac{1}{\sqrt{-2b_3}}; u = \frac{-b_2}{2b_3}; c =     exp \bigg(b_1 - \frac{b_2^2}{4b_3}\bigg)$$ 
 --
-For M species and Q environmental variables we would need: `\((1+2Q)M\)` parameters. For 10 species and 5 variables 110 parameters.  
+For .blue[S] species and .blue[P] environmental variables we would need: `\((1+2P)S\)` parameters.  
+For 10 species and 5 variables 110 parameters.  
 
 ---
 # Restricted Gaussian Regression 
 
-gradients as linear combinations of measured variables: 
-
-`$$z_i = \Sigma_{p =  1}^Q \alpha_p x_{ip}$$`
+Gradients `\(z\)` as linear combinations of measured variables `\(x\)`:
+`$$z_r = \Sigma_{p =  1}^P \alpha_{rp} x_p$$`
 --
-Plug gradients back into Gaussian regression
-`$$Y_i = ce ^{\frac{(z_i - u)^2}{2t^2}}$$` 
 
-Depending on the number of gradients this reduces the number of parameters. 
+Plug gradients back into Gaussian regression
+`$$Y_i = c\ exp\bigg(\frac{(z_ri - u_r)^2}{2t_r^2}\bigg)$$`
+
+If R `\(\ll\)` P, this reduces the number of parameters. 
 
 ---
 # What is the model-based approach? 
 
 Model-based approaches assume a parametric generative model
 
-Terms are not consistent:  
-Roberts (2019) vs. Warton *el al.* (2012) dissagree about wether CA is distance-based
+--
 
-Alternative: algorithm-based (Warton *et al.* 2015) 
+.blue[**Terms are not consistent**]:  
+Roberts (2019) and Warton *el al.* (2012) disagree about whether CA is distance-based
+
+--
+
+Alternative 1: algorithm-based (Warton *et al.* 2015)  
+
+--
+
+
 Alternative 2: transformation-based  
 
-"*Our constrained ordination model [...]* " Brittain *et al.* (2020)  
-"*Many biologist fit CCA models [...]* " Yee (2004) 
+--
+
+&lt;blockquote&gt;
+Our constrained ordination model [...] 
+.right[-- &lt;cite&gt;Brittain *et al.* (2020)&lt;/cite&gt;]
+&lt;/blockquote&gt;
+
+--
+
+&lt;blockquote&gt;
+Many biologist fit CCA models [...] 
+.right[-- &lt;cite&gt;Yee (2004) &lt;/cite&gt;]
+&lt;/blockquote&gt;
+
 
 ---
 background-image: url("figures/glm_error.png")
-background-size: 500px
-background-position: 50% 50%
-&lt;!-- Are models better  1--&gt;
+background-size: 550px
+background-position: 50% 70%
+
 # Are models better? 
 
 ---
 background-image: url("figures/WWW12_1.png")
 background-size: 800px
 background-position: 50% 50%
-&lt;!-- Are models better  2--&gt;
+
 # Are models better? 
 
-Every distance metric assumes a mean variance relationship  
+Every distance metric assumes a mean-variance relationship  
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -196,7 +242,7 @@ background-position: 50% 75%
 
 # Are models better? 
 
-Every distance metric assumes a mean variance relationship  
+Every distance metric assumes a mean-variance relationship  
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -206,19 +252,15 @@ background-position: 50% 75%
 
 # Are models better? 
 
-Every distance metric assumes a mean variance relationship  
-
-
+Every distance metric assumes a mean-variance relationship  
 
 .footnote[Warton *et al.* (2012)]
 ---
 background-image: url("figures/szöcs15_1.png")
-background-size: 400px
-background-position: 50% 75%
+background-size: 800px
+background-position: 50% 50%
 
 # Are models better? 
-
-
 
 .footnote[Szöcs *et al.* (2015)]
 ---
@@ -250,10 +292,17 @@ Abundance
 # Multivariate GLMM
 
 We could use mixed models and model the taxon as a random effect.
+
+--
+
 `$$Abundace \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$`
+--
+
 1. `\(y_{ij}\)` are independand, conditional on mean  `\(\mu_{ij}\)`
 2. Conditional on `\(\mu_{ij}\)`, data come from a .blue[known distribution]  
 3. straight line relationship between some function `\(\mu_{ij}\)` and x, with error `\(\epsilon_{ij}\)`
+
+
 `$$g(\mu_{ij}) = \beta_0j + x^T_j \beta_j + \epsilon_{ij}$$`
 4. `\(\epsilon\)` are normally distributed. They introduce correlation between response within observatios. 
 `$$\epsilon_{ij} \sim MVN(0, \Sigma)$$`
@@ -1381,6 +1430,9 @@ set.seed(1)
 class: inverse, center, middle
 # Latent Variable Models 
 ---
+# Latent variables ??? 
+
+---
 # Random-effects ordination 
 
 .footnote[Walker &amp; Jackson (2011)]
@@ -1425,7 +1477,7 @@ class: inverse, center, middle
 
 --
 
-- Hui (2016): Bayesian Ordination and Regression Analysis
+- Hui (2016): **B**ayesian **O**rdination and **R**egression **A**na**L**ysis
 
 --
 
@@ -1469,7 +1521,9 @@ class: inverse, center, middle
 
 - Interactions are often asymmetric   
 ---
+
 # BORAL in Action
+
 .scroll-output[
 
 
@@ -1566,22 +1620,14 @@ summary(fit_unconstrained_po)
 ## [1] "summary.boral"
 ```
 ]
+
 ---
+
 # Check model assumptions
 
-
-```
-## NULL
-```
-
-&lt;img src="mod3_presentation_files/figure-html/check boral 1-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="mod3_presentation_files/figure-html/check-boral-ucpo-1.png" style="display: block; margin: auto;" /&gt;
 ---
 # Check model assumptions - NB
-
-```
-## NULL
-```
-
 &lt;img src="mod3_presentation_files/figure-html/check boral 2-1.png" style="display: block; margin: auto;" /&gt;
 ---
 # Ordination Diagram
@@ -1590,11 +1636,23 @@ summary(fit_unconstrained_po)
 
 
 # Constrained Ordination 
+
+--
+
 .scroll-output[
 
 ```r
 X &lt;- scale(spider$x)
-#fit_constrained_nb &lt;- boral(y = Y, X = X, family = "negative.binomial", lv.control = list(num.lv = 2), save.model = TRUE)
+
+# fit_constrained_nb &lt;-
+#   boral(
+#     y = Y,
+#     X = X,
+#     family = "negative.binomial",
+#     lv.control = list(num.lv = 2),
+#     save.model = TRUE
+#   )
+
 summary(fit_constrained_nb)
 ```
 
@@ -1692,133 +1750,67 @@ summary(fit_constrained_nb)
 # Correlation plots 
 &lt;img src="mod3_presentation_files/figure-html/boral correlation plots-1.png" style="display: block; margin: auto;" /&gt;
 ---
+# Correlation plots 
+&lt;img src="mod3_presentation_files/figure-html/boral correlation plots2-1.png" style="display: block; margin: auto;" /&gt;
+---
 # Uncertainty in latent variable models
 - R package UncertainOrd (Hoegh &amp; Roberts, 2020)
 - based on 95% credible intervals
 
 
 .scroll-output[
-
-```
-## [[1]]
-## [[1]]$plot.obj
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
-
-```
-## 
-## 
-## [[2]]
-## [[2]]$plot.obj
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_point).
-```
-
-```
-## Warning: Removed 4 rows containing missing values (geom_point).
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-15-2.png)&lt;!-- --&gt;
-
-```
-## 
-## 
-## [[3]]
-## [[3]]$plot.obj
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-15-3.png)&lt;!-- --&gt;
-
-```
-## 
-## 
-## [[4]]
-## [[4]]$plot.obj
-```
-
-```
-## Warning: Removed 75 rows containing non-finite values (stat_contour).
-```
-
-```
-## Warning: Removed 450 rows containing non-finite values (stat_contour).
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-15-4.png)&lt;!-- --&gt;
+![](mod3_presentation_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;![](mod3_presentation_files/figure-html/unnamed-chunk-13-2.png)&lt;!-- --&gt;![](mod3_presentation_files/figure-html/unnamed-chunk-13-3.png)&lt;!-- --&gt;![](mod3_presentation_files/figure-html/unnamed-chunk-13-4.png)&lt;!-- --&gt;
 ]
 ---
 # Can we include traits in this? 
 
 - as parameters for the priors  
 
-`$$\theta_{ij} \sim N(t_j^T \kappa_0, \mathbf{\sigma}^2_0)$$`
+`$$\theta_{0j} \sim N(t_j^T \kappa_0, \mathbf{\sigma}^2_0)$$`
 `$$\beta_{jk} \sim N(\mathbf{t_j^T \kappa_K, \sigma^2_k})$$`
-
+- The mean of the normal distribution from which species-specific intercept and regression coefficients are drawn depends on traits (t) and a trait coefficient ($\kappa$). 
 ---
-# Think back to GLMM 
+# GLLVM package 
 
-`\begin{align}
-g(m_{ij}) &amp;= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
-y_{ij}|u_{ij} &amp;\sim F(m_{ij}, \phi)\\
-u_i &amp; \sim N(0, \Sigma)
-\end{align}`
+- R package gllvm (Niku *et al.*, 2019b)
 
---
+- Maximum Likelihood instead of Bayesian 
 
---- 
-`\begin{align}
-g(m_{ij}) &amp;= \alpha_i + \beta_{0i} + x_j^T \beta_i + u_{ij}\\
-u_i &amp;= z_i^T \lambda_j\\
-y_{ij}|z_{i} &amp;\sim F(m_{ij}, \phi)\\
-z_{i} &amp;\sim N(0, I)
-\end{align}`
+- faster! 
 
---
-`\(\rightarrow\)` basically an ordination of the covariance matrix
 ---
 
 ```r
-# library(gllvm);library(corrplot);library(gclus)
+# pacman::p_load(gllvm, corrplot,gclus)
 # data("antTraits")
 # y &lt;- as.matrix(antTraits$abund)
 # X &lt;- scale(as.matrix(antTraits$env))
 # TR &lt;- antTraits$traits
-```
----
-# Unconstrained ordination with gllvm
-.scroll-output[
-
-```r
 # fit_uo_po &lt;- gllvm(y, family = poisson())
 # fit_uo_nb &lt;- gllvm(y, family = "negative.binomial")
 # fit_uo_po
-# fit_uo_nb
-# par(mfrow = c(1,2))
-# plot(fit_uo_nb, which = 1)
-# plot(fit_uo_po, which = 1)
-# plot(fit_uo_nb, which = 2)
-# plot(fit_uo_po, which = 2)
-# plot(fit_uo_nb, which = 3)
-# plot(fit_uo_po, which = 3)
 ```
+---
+# Unconstrained ordination
+.scroll-output[
+
 ]
 ---
-# Biplot with gllvm 
-
+# gllvm Biplot  
 
 ---
-# Constrained Ordination with gllvm 
+# Constrained Ordination 
 
 ```r
-# fit_co_nb2 &lt;- gllvm(y, X, num.lv = 2, 
-#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+# fit_co_nb2 &lt;- gllvm(y, X, num.lv = 2,
+#                     formula = ~ Bare.ground + Shrub.cover + 
+#                       Volume.lying.CWD,
 #                     family = "negative.binomial")
-# fit_co_nb3 &lt;- gllvm(y, X, num.lv = 3, 
-#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+# fit_co_nb3 &lt;- gllvm(y, X, num.lv = 3,
+#                     formula = ~ Bare.ground + Shrub.cover + 
+#                       Volume.lying.CWD,
 #                     family = "negative.binomial")
+# AIC(fit_co_nb2, fit_co_nb3)
 ```
 ---
 # Biplot of constrained ordination 
@@ -1833,13 +1825,16 @@ z_{i} &amp;\sim N(0, I)
 # Fitting a Fourth Corner Model
 
 ```r
-# fit_4th &lt;- gllvm(y, X, TR, 
-#                  family = "negative.binomial", 
-#                  num.lv = 2, 
-#                  formula = y ~ 
-#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) +
-#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
-#                    (Pilosity + Polymorphism + Webers.length))
+# fit_4th &lt;- gllvm(
+#   y = y,
+#   X = X,
+#   TR = TR,
+#   family = "negative.binomial",
+#   num.lv = 2,
+#   formula = y ~
+#     (Bare.ground + Shrub.cover + Volume.lying.CWD) +
+#     (Bare.ground + Shrub.cover + Volume.lying.CWD):(Pilosity + Polymorphism + Webers.length)
+# )
 ```
 ---
 # Fourth Corner Interaction Plot
@@ -1848,36 +1843,528 @@ z_{i} &amp;\sim N(0, I)
 # Do Traits matter here? 
 
 ```r
-# fit_4th2 &lt;- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
+# fit_4th2 &lt;- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2,
 #                   formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
 # anova(fit_4th, fit_4th2)
 ```
 ---
-background-image: url("figures/hoegh2020_1.png")
-background-size: 700px
-background-position: 50% 80%
 
-# Uncertainty in latent variable models
-- R package UncertainOrd
-- based on 95% credible intervals
-.footnote[Hoegh &amp; Roberts (2020)]
-
---
-
-- can't be used with gllvm (ML estimation)
-
----
-
-background-image: url("figures/hoegh2020_2.png")
-background-size: 600px
-background-position: 50% 60%
-# Uncertainty in latent variable models
-.footnote[Hoegh &amp; Roberts (2020)]
+Berts stuff 
 
 ---
 class: inverse, center, middle 
 
 # Hierarchical modeling of species communities 
+---
+background-image: url("figures/Elith2007_1.png")
+background-size: 900px
+background-position: 50% 50%
+# Species Distribution Models
+.footnote[Elith *et al.* (2009)]
+---
+# Species Distribution Models
+
+- aka niche models `\(^1\)`, environmental models `\(^2\)`, habitat suitability models `\(^2\)`, envelope models `\(^3\)`
+- model the realized niche 
+.footnote[1. Peterson *et al.* (2011), 2. Guisan *et al* (2017), 3. Hijmans &amp; Graham (2006)]
+---
+background-image: url("figures/zurell2020-1.png")
+background-size: 800px
+background-position: 50% 50%
+# Species Distribution Models 
+.footnote[Zurell *et al.* (2020)]
+---
+# Joint Species Distribution Models
+
+- biotic interactions are also important! (Wisz *et al.*, 2013)
+
+- limit range to that of another species (Schweiger *et al.*, 2012)
+
+- use species at predictor variables (Leathwick &amp; Austin, 2001)
+
+- JSDMs use resdiual correlation latent variables (Pollock *et al.* 2014)
+
+`\begin{align}
+Pr(Y_{ij}=1) &amp; = Pr(Z_{ij} &gt; 0) \\
+Z_{ij} &amp; \sim N(X_iB, \Sigma) \\
+B_{jk} &amp; \sim N(\mu_k, \sigma_k)\\
+\end{align}`
+
+---
+
+# Are JSDMs worth the trouble? 
+
+- alternative is called stacked SDM (many single species models)
+
+- many studies compare predictive performance 
+
+- JSDMs better for communities with many rare species but rank order differs according to evaluation metric (Norberg *et al.*, 2019)
+
+--
+
+- no difference in performance (Zurell *et al.*, 2019)
+
+--
+
+- **community level models**  "predict first, assemble later" vs. "assemble first, predict later" 
+
+--
+
+- clm outperform stacked models slightly (Maguire *et al.*, 2016)
+- clm perform poorly (Baselga &amp; Araújo, 2010)
+
+---
+background-image: url("figures/ovaskainen2017_1.png")
+background-size: 700px
+background-position: 50% 50%
+# Hierarchical modeling of species communities
+.footnote[Ovaskainen *et al.* (2017)]
+
+---
+background-image: url("figures/ovaskainen_abrego2020-1.png")
+background-size: 700px
+background-position: 50% 50%
+# Hierarchical modeling of species communities
+.footnote[Ovaskainen &amp; Abrego (2020)]
+
+---
+# Single Species - Corvus Monedula
+
+
+
+&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px; overflow-x: scroll; width:800px; "&gt;&lt;table class=" lightable-minimal" style='font-family: "Trebuchet MS", verdana, sans-serif; margin-left: auto; margin-right: auto;'&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Route &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Year &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; x &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; y &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Effort &lt;/th&gt;
+   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; Habitat &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; JunJul &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; DJF &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; AprMay &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phylloscopus_trochilus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_iliacus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Fringilla_coelebs &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_philomelos &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Carduelis_spinus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_major &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Anthus_trivialis &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Erithacus_rubecula &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Cuculus_canorus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Muscicapa_striata &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Ficedula_hypoleuca &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_pilaris &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Loxia_curvirostra &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Columba_palumbus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_borin &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Corvus_corone &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Dendrocopos_major &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Emberiza_citrinella &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_merula &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_curruca &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Regulus_regulus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Prunella_modularis &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phoenicurus_phoenicurus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_caeruleus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_montanus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Motacilla_alba &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Carduelis_chloris &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phylloscopus_collybita &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Tringa_ochropus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_cristatus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_communis &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Grus_grus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Larus_canus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pica_pica &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phylloscopus_sibilatrix &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_viscivorus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Hirundo_rustica &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_atricapilla &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Tetrao_tetrix &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pyrrhula_pyrrhula &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Dryocopus_martius &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Certhia_familiaris &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alauda_arvensis &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Corvus_corax &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Saxicola_rubetra &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Garrulus_glandarius &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Numenius_arquata &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Carpodacus_erythrinus &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Gallinago_gallinago &lt;/th&gt;
+   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Corvus_monedula &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5028.6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4167.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6200 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Op &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.777 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.89438 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.57005 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 56 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5052.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4171.7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6300 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Co &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.934 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.13370 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.74435 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 62 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5077.6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4178.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6000 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Urb &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.887 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.27420 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.70685 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5101.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4183.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6000 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Co &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.803 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.17750 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.63350 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 80 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4876.6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4153.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6300 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Urb &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.297 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.72022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6.89660 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 23 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 43 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4975.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4176.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6000 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Co &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.326 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.30000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.11275 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 65 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/div&gt;
 ---
 class: inverse, center, middle 
 # Copulas 
@@ -2017,14 +2504,6 @@ background-position: 60% 80%
 # devtools::install_github("gordy2x/ecoCopula")
 library(ecoCopula)
 gcgm_obj_0 &lt;- cgr(tas.nb,lambda=0)
-```
-
-```
-## Warning in cgr(tas.nb, lambda = 0): 'best' model selected among supplied lambda
-## only
-```
-
-```r
 plot(gcgm_obj_0)
 ```
 
@@ -2032,14 +2511,6 @@ plot(gcgm_obj_0)
 
 ```r
 gcgm_obj_1 &lt;- cgr(tas.nb,lambda=.1)
-```
-
-```
-## Warning in cgr(tas.nb, lambda = 0.1): 'best' model selected among supplied
-## lambda only
-```
-
-```r
 plot(gcgm_obj_1)
 ```
 
@@ -2047,14 +2518,6 @@ plot(gcgm_obj_1)
 
 ```r
 gcgm_obj_2 &lt;- cgr(tas.nb,lambda=.2)
-```
-
-```
-## Warning in cgr(tas.nb, lambda = 0.2): 'best' model selected among supplied
-## lambda only
-```
-
-```r
 plot(gcgm_obj_2)
 ```
 
@@ -2062,14 +2525,6 @@ plot(gcgm_obj_2)
 
 ```r
 gcgm_obj_3 &lt;- cgr(tas.nb,lambda=seq(from = 0, to = 0.2,by = 0.01))
-```
-
-```
-## Warning in cgr(tas.nb, lambda = seq(from = 0, to = 0.2, by = 0.01)): 'best'
-## model selected among supplied lambda only
-```
-
-```r
 plot(gcgm_obj_3)
 ```
 

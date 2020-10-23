@@ -23,29 +23,50 @@ output:
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
-library(corrplot)
-library(UncertainOrd)
+knitr::opts_chunk$set(cache = FALSE,fig.pos = 'H',fig_cap=TRUE)
+pacman::p_load(corrplot, 
+               data.table,
+               dplyr, 
+               kableExtra, 
+               magrittr,
+               tmap, 
+               sf,
+               UncertainOrd)
+tmap_mode("view")
 ```
 
-<!--TODO Abstand zwischen Bullets-->  
+
+```{r todo list}
+#TODO Abstand zwischen Bullets
+#TODO Abstand zwischen Bullets
+#TODO serial slide
+#TODO adjust images 
+#TODO Latent variable intro slide 
+
+```
+
+---
+
+
+<!--TODO -->  
 <!--# TODO serial slide-->   
 <!--# TODO bullet color-->  
 
 # Plan for today 
 
-- What’s new in multivariate analysis?
+1. What’s new in multivariate analysis?
 
-- mvabund
+2. mvabund
 
-- Vector GLM/GAM
+3. Vector GLM/GAM
 
-- Latent Variable Models 
+4. Latent Variable Models 
 
-- Copulas 
+5. Hierarchical Modeling of Species Communities
 
-- Hierarchical Modeling of Species Communities
+6. Copulas 
 
-- Neural Hierarchical Models 
+7. Neural Hierarchical Models 
 
 
 ---
@@ -55,7 +76,7 @@ class: inverse, center, middle
 
 ---
 
-# ... and what's old? 
+# ... well first, what's old? 
 
 --
 
@@ -93,18 +114,23 @@ plot(rda_object)
 
 They are based on some notion of a distance metric
 
-##fixed 
+--
+
+## fixed
+
 - PCA and RDA: Euclidean 
 - CA and CCA: $\chi^2$-distance
 
 --
 
-##flexible 
+## flexible
+
 - NMDS 
 - PCoA
 - dbRDA
 
 ---
+
 # How does that differ from the univerate and why? 
 
 --
@@ -117,7 +143,7 @@ In univariate analyses we mostly use models:
 
 --
 
-$\rightarrow$ why not in multivariate analyses? 
+$\rightarrow$ .blue[**why not in multivariate analyses?**]
 
 ---
 class: middle, center
@@ -127,60 +153,88 @@ knitr::include_graphics("old_pc.gif")
 ```
 
 ---
+# Notation 
+$s=1,...,S$ species   
+$i=1,...,N$ sites   
+$p=1,...,P$ environmental variables   
+$r=1,...,R$ latent variables   
+---
+
 # The idea is old 
 
 The Gaussian response model: 
-$$Y_i = ce^{- \frac{(X_i - u)^2}{2t^2}} $$
+$$Y_i = c\ exp\bigg(- \frac{(X_i - u)^2}{2t^2}\bigg) $$
 --
 Can be rewritten as a GLM:
-$$Y_i = exp(ln(c) - \frac{u^2}{2t^2} + \frac{u}{t^2}x_i - \frac{1}{2t^2}x^2_i) = exp(b_1 + b_2 x_i + b_3 x_i^2)$$
+$$Y_i = exp \bigg(ln(c) - \frac{u^2}{2t^2} + \frac{u}{t^2}x_i - \frac{1}{2t^2}x^2_i\bigg) = exp(b_1 + b_2 x_i + b_3 x_i^2)$$
 --
 with 
-$$ t = \frac{1}{\sqrt{-2b_3}}; u = \frac{-b_2}{2b_3}; c =     exp(b_1 - \frac{b_2^2}{4b_3})$$ 
+$$ t = \frac{1}{\sqrt{-2b_3}}; u = \frac{-b_2}{2b_3}; c =     exp \bigg(b_1 - \frac{b_2^2}{4b_3}\bigg)$$ 
 --
-For M species and Q environmental variables we would need: $(1+2Q)M$ parameters. For 10 species and 5 variables 110 parameters.  
+For .blue[S] species and .blue[P] environmental variables we would need: $(1+2P)S$ parameters.  
+For 10 species and 5 variables 110 parameters.  
 
 ---
 # Restricted Gaussian Regression 
 
-gradients as linear combinations of measured variables: 
-
-$$z_i = \Sigma_{p =  1}^Q \alpha_p x_{ip}$$
+Gradients $z$ as linear combinations of measured variables $x$:
+$$z_r = \Sigma_{p =  1}^P \alpha_{rp} x_p$$
 --
-Plug gradients back into Gaussian regression
-$$Y_i = ce ^{\frac{(z_i - u)^2}{2t^2}}$$ 
 
-Depending on the number of gradients this reduces the number of parameters. 
+Plug gradients back into Gaussian regression
+$$Y_i = c\ exp\bigg(\frac{(z_ri - u_r)^2}{2t_r^2}\bigg)$$
+
+If R $\ll$ P, this reduces the number of parameters. 
 
 ---
 # What is the model-based approach? 
 
 Model-based approaches assume a parametric generative model
 
-Terms are not consistent:  
-Roberts (2019) vs. Warton *el al.* (2012) dissagree about wether CA is distance-based
+--
 
-Alternative: algorithm-based (Warton *et al.* 2015) 
+.blue[**Terms are not consistent**]:  
+Roberts (2019) and Warton *el al.* (2012) disagree about whether CA is distance-based
+
+--
+
+Alternative 1: algorithm-based (Warton *et al.* 2015)  
+
+--
+
+
 Alternative 2: transformation-based  
 
-"*Our constrained ordination model [...]* " Brittain *et al.* (2020)  
-"*Many biologist fit CCA models [...]* " Yee (2004) 
+--
+
+<blockquote>
+Our constrained ordination model [...] 
+.right[-- <cite>Brittain *et al.* (2020)</cite>]
+</blockquote>
+
+--
+
+<blockquote>
+Many biologist fit CCA models [...] 
+.right[-- <cite>Yee (2004) </cite>]
+</blockquote>
+
 
 ---
 background-image: url("figures/glm_error.png")
-background-size: 500px
-background-position: 50% 50%
-<!-- Are models better  1-->
+background-size: 550px
+background-position: 50% 70%
+
 # Are models better? 
 
 ---
 background-image: url("figures/WWW12_1.png")
 background-size: 800px
 background-position: 50% 50%
-<!-- Are models better  2-->
+
 # Are models better? 
 
-Every distance metric assumes a mean variance relationship  
+Every distance metric assumes a mean-variance relationship  
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -190,7 +244,7 @@ background-position: 50% 75%
 
 # Are models better? 
 
-Every distance metric assumes a mean variance relationship  
+Every distance metric assumes a mean-variance relationship  
 
 .footnote[Warton *et al.* (2012)]
 ---
@@ -200,19 +254,15 @@ background-position: 50% 75%
 
 # Are models better? 
 
-Every distance metric assumes a mean variance relationship  
-
-
+Every distance metric assumes a mean-variance relationship  
 
 .footnote[Warton *et al.* (2012)]
 ---
 background-image: url("figures/szöcs15_1.png")
-background-size: 400px
-background-position: 50% 75%
+background-size: 800px
+background-position: 50% 50%
 
 # Are models better? 
-
-
 
 .footnote[Szöcs *et al.* (2015)]
 ---
@@ -244,10 +294,17 @@ Abundance
 # Multivariate GLMM
 
 We could use mixed models and model the taxon as a random effect.
+
+--
+
 $$Abundace \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$
+--
+
 1. $y_{ij}$ are independand, conditional on mean  $\mu_{ij}$
 2. Conditional on $\mu_{ij}$, data come from a .blue[known distribution]  
 3. straight line relationship between some function $\mu_{ij}$ and x, with error $\epsilon_{ij}$
+
+
 $$g(\mu_{ij}) = \beta_0j + x^T_j \beta_j + \epsilon_{ij}$$
 4. $\epsilon$ are normally distributed. They introduce correlation between response within observatios. 
 $$\epsilon_{ij} \sim MVN(0, \Sigma)$$
@@ -468,7 +525,7 @@ $$ log\ \mu_s(\nu) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\nu - u_s}{t_s
 from ter Braak (1986)  
 
 ```{r load VGAM, message=FALSE, echo = F}
-library(VGAM);library("DT"); library("dplyr");library(kableExtra)
+library(VGAM)
 data(hspider)
 ```
 
@@ -605,6 +662,9 @@ set.seed(1)
 class: inverse, center, middle
 # Latent Variable Models 
 ---
+# Latent variables ??? 
+
+---
 # Random-effects ordination 
 
 .footnote[Walker & Jackson (2011)]
@@ -649,7 +709,7 @@ class: inverse, center, middle
 
 --
 
-- Hui (2016): Bayesian Ordination and Regression Analysis
+- Hui (2016): **B**ayesian **O**rdination and **R**egression **A**na**L**ysis
 
 --
 
@@ -693,13 +753,15 @@ class: inverse, center, middle
 
 - Interactions are often asymmetric   
 ---
+
 # BORAL in Action
+
 .scroll-output[
-```{r echo=FALSE}
+```{r read-boral-ucpo, echo=FALSE}
 fit_unconstrained_po <-readRDS("../003_processed_data/boral_unconstrained_poisson.RDS")
 ```
 
-```{r}
+```{r boral-in-action}
 pacman::p_load(boral, rjags, mvabund, UncertainOrd)
 data(spider)
 Y <- spider$abund
@@ -707,35 +769,49 @@ Y <- spider$abund
 summary(fit_unconstrained_po)
 ```
 ]
+
 ---
+
 # Check model assumptions
 
-```{r check boral 1, fig.align="center", fig.height=7, fig.width=7, echo=FALSE}
+```{r check-boral-ucpo, fig.align="center", fig.height=8, fig.width=8, echo=FALSE}
 par(mfrow=c(2,2))
-plot(fit_unconstrained_po)
+res <- capture.output(plot(fit_unconstrained_po))
 ```
 ---
 # Check model assumptions - NB
-```{r check boral 2, fig.align="center", fig.height=7, fig.width=7, echo=FALSE}
+```{r check boral 2, fig.align="center", fig.height=8, fig.width=8, echo=FALSE}
 fit_unconstrained_nb <-readRDS("../003_processed_data/boral_unconstrained_negbinom.RDS")
 par(mfrow=c(2,2))
-plot(fit_unconstrained_nb)
+res = capture.output(plot(fit_unconstrained_nb))
 ```
 ---
 # Ordination Diagram
-```{r ordiplot boral 1, fig.align="center", fig.height=7, fig.width=7, echo=FALSE}
+```{r ordiplot boral 1, fig.align="center", fig.height=8, fig.width=8, echo=FALSE}
 suppressMessages(lvsplot(fit_unconstrained_nb))
 ```
 ---
-```{r boral load contrained, echo=FALSE}
+```{r boral load constrained, echo=FALSE}
 fit_constrained_nb <- readRDS("../003_processed_data/boral_constrained_negbinom.RDS")
 ```
 
 # Constrained Ordination 
+
+--
+
 .scroll-output[
 ```{r boral fit constrained}
 X <- scale(spider$x)
-#fit_constrained_nb <- boral(y = Y, X = X, family = "negative.binomial", lv.control = list(num.lv = 2), save.model = TRUE)
+
+# fit_constrained_nb <-
+#   boral(
+#     y = Y,
+#     X = X,
+#     family = "negative.binomial",
+#     lv.control = list(num.lv = 2),
+#     save.model = TRUE
+#   )
+
 summary(fit_constrained_nb)
 ```
 ]
@@ -743,21 +819,19 @@ summary(fit_constrained_nb)
 # Correlation plots 
 ```{r boral correlation plots, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
 envcors <- get.enviro.cor(fit_constrained_nb)
-rescors <- get.residual.cor(fit_constrained_nb) 
 par(mfrow=c(1,1))
 corrplot(
         envcors$sig.cor,
         type = "lower",
         diag = FALSE,
         title =  "Correlations due to covariates", 
-        mar = c(3,0.5,2,1), tl.srt = 45) 
+        mar = c(3,0.5,2,1), 
+        tl.srt = 45) 
 ```
 ---
 # Correlation plots 
-```{r boral correlation plots, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
-envcors <- get.enviro.cor(fit_constrained_nb)
+```{r boral correlation plots2, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
 rescors <- get.residual.cor(fit_constrained_nb) 
-par(mfrow=c(1,1))
 corrplot(
         rescors$sig.cor,
         type = "lower",
@@ -778,7 +852,12 @@ par(mfrow=c(1,1))
 ```
 .scroll-output[
 ```{r, echo=FALSE}
-print(uncertain_plot)
+options(warn=-1)
+uncertain_plot[[1]]$plot.obj
+uncertain_plot[[2]]$plot.obj
+uncertain_plot[[3]]$plot.obj
+uncertain_plot[[4]]$plot.obj
+
 ```
 ]
 ---
@@ -786,32 +865,33 @@ print(uncertain_plot)
 
 - as parameters for the priors  
 
-$$\theta_{ij} \sim N(t_j^T \kappa_0, \mathbf{\sigma}^2_0)$$
+$$\theta_{0j} \sim N(t_j^T \kappa_0, \mathbf{\sigma}^2_0)$$
 $$\beta_{jk} \sim N(\mathbf{t_j^T \kappa_K, \sigma^2_k})$$
-
+- The mean of the normal distribution from which species-specific intercept and regression coefficients are drawn depends on traits (t) and a trait coefficient ($\kappa$). 
 ---
 # GLLVM package 
 
-- see Nikku *et al.* (2019b)
+- R package gllvm (Niku *et al.*, 2019b)
 
-- Uses recenet advances in ML estimation (Hui *et al.* 2017a; Niku *et al.*, 2017), computation (Kristensen et al., 2016), and parametrization (Niku et al., 2019a) to speed up computations. 
+- Maximum Likelihood instead of Bayesian 
+
+- faster! 
 
 ---
-```{r}
-# library(gllvm);library(corrplot);library(gclus)
+```{r gllvm-in-action-1}
+# pacman::p_load(gllvm, corrplot,gclus)
 # data("antTraits")
 # y <- as.matrix(antTraits$abund)
 # X <- scale(as.matrix(antTraits$env))
 # TR <- antTraits$traits
-```
----
-# Unconstrained ordination with gllvm
-.scroll-output[
-```{r}
 # fit_uo_po <- gllvm(y, family = poisson())
 # fit_uo_nb <- gllvm(y, family = "negative.binomial")
 # fit_uo_po
-# fit_uo_nb
+```
+---
+# Unconstrained ordination
+.scroll-output[
+```{r gllvm-in-action-2, echo=FALSE, fig.width=8, fig.hight=8, fig.align="center"}
 # par(mfrow = c(1,2))
 # plot(fit_uo_nb, which = 1)
 # plot(fit_uo_po, which = 1)
@@ -822,75 +902,193 @@ $$\beta_{jk} \sim N(\mathbf{t_j^T \kappa_K, \sigma^2_k})$$
 ```
 ]
 ---
-# Biplot with gllvm 
-
-```{r gllvm unconstrained biplot, fig.align = "center", fig.height=7, echo = F}
-# ordiplot(fit_uo_nb, biplot = TRUE, ind.spp = 15, xlim = c(-3,3) , ylim = c(-2, 1.6))
+# gllvm Biplot  
+```{r gllvm-uc-biplot, fig.align = "center", fig.height=8, fig.width=8, echo = F}
+# ordiplot(fit_uo_nb, 
+#          biplot = TRUE, 
+#          ind.spp = 15, 
+#          xlim = c(-3,3) , 
+#          ylim = c(-2, 1.6))
 ```
 ---
-# Constrained Ordination with gllvm 
-```{r}
-# fit_co_nb2 <- gllvm(y, X, num.lv = 2, 
-#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+# Constrained Ordination 
+```{r gllvm-in-action-3}
+# fit_co_nb2 <- gllvm(y, X, num.lv = 2,
+#                     formula = ~ Bare.ground + Shrub.cover + 
+#                       Volume.lying.CWD,
 #                     family = "negative.binomial")
-# fit_co_nb3 <- gllvm(y, X, num.lv = 3, 
-#                     formula = ~ Bare.ground + Shrub.cover + Volume.lying.CWD, 
+# fit_co_nb3 <- gllvm(y, X, num.lv = 3,
+#                     formula = ~ Bare.ground + Shrub.cover + 
+#                       Volume.lying.CWD,
 #                     family = "negative.binomial")
+# AIC(fit_co_nb2, fit_co_nb3)
 ```
 ---
 # Biplot of constrained ordination 
-```{r gllvm constrained biplot, echo = F, fig.align ="center"}
-# ordiplot(fit_co_nb3, biplot = T)
+```{r gllvm-co-biplot, echo = F, fig.align ="center", fig.height=8, fig.width=8}
+# ordiplot(fit_co_nb2, biplot = T)
 ```
 ---
 # Coefficient plot 
-```{r gllvm constrained coefficient plot, echo = F, fig.align = "center", fig.width = 10}
-# coefplot(fit_co_nb3, cex.ylab = 0.7, mar = c(4,9,2,1), 
+```{r gllvm-co-coefficient-plot, echo = F, fig.align = "center", fig.width = 10, fig.height=7}
+# coefplot(fit_co_nb2, cex.ylab = 0.7, mar = c(4,9,2,1),
 #          xlim.list = list(NULL, NULL, c(-4,4)))
-
 ```
 ---
 # Residual Correlation plot 
-```{r gllvm Residual Correlation plot, echo = F, fig.align="center"}
-# cr <- getResidualCor(fit_co_nb3)
+```{r gllvm-residual-correlation-plot, echo = F, fig.align="center",fig.height=8, fig.width=8}
 # par(mfrow = c(1,1))
-# corrplot(cr[order.single(cr), order.single(cr)], diag = FALSE, type = "lower", method = "square", tl.cex = 0.8, tl.srt = 45, tl.col = "red")
+# cr <- getResidualCor(fit_co_nb2)
+# corrplot(cr[order.single(cr), 
+#             order.single(cr)], 
+#          diag = FALSE, 
+#          type = "lower", 
+#          method = "square", 
+#          tl.cex = 0.8, 
+#          tl.srt = 45, 
+#          tl.col = "red")
 ```
 ---
 # Fitting a Fourth Corner Model
-```{r fitting 4th corner gllvm}
-# fit_4th <- gllvm(y, X, TR, 
-#                  family = "negative.binomial", 
-#                  num.lv = 2, 
-#                  formula = y ~ 
-#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) +
-#                    (Bare.ground + Shrub.cover + Volume.lying.CWD) :  
-#                    (Pilosity + Polymorphism + Webers.length))
+```{r fitting-4th-corner-gllvm}
+# fit_4th <- gllvm(
+#   y = y,
+#   X = X,
+#   TR = TR,
+#   family = "negative.binomial",
+#   num.lv = 2,
+#   formula = y ~
+#     (Bare.ground + Shrub.cover + Volume.lying.CWD) +
+#     (Bare.ground + Shrub.cover + Volume.lying.CWD):(Pilosity + Polymorphism + Webers.length)
+# )
 
 ```
 ---
 # Fourth Corner Interaction Plot
-```{r, echo = F, fig.align = "center"}
+```{r, echo = F, fig.align = "center",fig.height=8, fig.width=8}
 # fourth <- fit_4th$fourth.corner
 # colort <- colorRampPalette(c("blue", "white", "red"))
 # a <- max( abs(fourth) )
-# plot.4th <- lattice::levelplot((as.matrix(fourth)), xlab = "Environmental Variables", 
+# plot.4th <- lattice::levelplot((as.matrix(fourth)), xlab = "Environmental Variables",
 #                       ylab = "Species traits", col.regions = colort(100), cex.lab =1.3,
 #                       at = seq(-a, a, length = 100), scales = list(x = list(rot = 45)))
 # plot.4th
 ```
 ---
 # Do Traits matter here? 
-```{r}
-# fit_4th2 <- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2, 
+```{r gllvm-traits-matter}
+# fit_4th2 <- gllvm(y, X, TR, family = "negative.binomial", num.lv = 2,
 #                   formula = y ~ (Bare.ground + Shrub.cover + Volume.lying.CWD))
 # anova(fit_4th, fit_4th2)
 ```
+---
+
+Berts stuff 
 
 ---
 class: inverse, center, middle 
 
 # Hierarchical modeling of species communities 
+---
+background-image: url("figures/Elith2007_1.png")
+background-size: 900px
+background-position: 50% 50%
+# Species Distribution Models
+.footnote[Elith *et al.* (2009)]
+---
+# Species Distribution Models
+
+- aka niche models $^1$, environmental models $^2$, habitat suitability models $^2$, envelope models $^3$
+- model the realized niche 
+.footnote[1. Peterson *et al.* (2011), 2. Guisan *et al* (2017), 3. Hijmans & Graham (2006)]
+---
+background-image: url("figures/zurell2020-1.png")
+background-size: 800px
+background-position: 50% 50%
+# Species Distribution Models 
+.footnote[Zurell *et al.* (2020)]
+---
+# Joint Species Distribution Models
+
+- biotic interactions are also important! (Wisz *et al.*, 2013)
+
+- limit range to that of another species (Schweiger *et al.*, 2012)
+
+- use species at predictor variables (Leathwick & Austin, 2001)
+
+- JSDMs use resdiual correlation latent variables (Pollock *et al.* 2014)
+
+\begin{align}
+Pr(Y_{ij}=1) & = Pr(Z_{ij} > 0) \\
+Z_{ij} & \sim N(X_iB, \Sigma) \\
+B_{jk} & \sim N(\mu_k, \sigma_k)\\
+\end{align}
+
+---
+
+# Are JSDMs worth the trouble? 
+
+- alternative is called stacked SDM (many single species models)
+
+- many studies compare predictive performance 
+
+- JSDMs better for communities with many rare species but rank order differs according to evaluation metric (Norberg *et al.*, 2019)
+
+--
+
+- no difference in performance (Zurell *et al.*, 2019)
+
+--
+
+- **community level models**  "predict first, assemble later" vs. "assemble first, predict later" 
+
+--
+
+- clm outperform stacked models slightly (Maguire *et al.*, 2016)
+- clm perform poorly (Baselga & Araújo, 2010)
+
+---
+background-image: url("figures/ovaskainen2017_1.png")
+background-size: 700px
+background-position: 50% 50%
+# Hierarchical modeling of species communities
+.footnote[Ovaskainen *et al.* (2017)]
+
+---
+background-image: url("figures/ovaskainen_abrego2020-1.png")
+background-size: 700px
+background-position: 50% 50%
+# Hierarchical modeling of species communities
+.footnote[Ovaskainen & Abrego (2020)]
+
+---
+# Single Species - Corvus Monedula
+
+```{r hmsc-ss-load ,echo=F, results='hide'}
+library(Hmsc)
+data.directory="../001_raw_data/hmsc_birds/data/"
+model.directory="../003_processed_data/hmsc_mcmc/"
+data = fread(file.path(data.directory, "data.csv"), stringsAsFactors=TRUE)
+data=data[Year==2014]
+data%<>%droplevels()
+XData=as.data.frame(data[,c("Habitat", "AprMay")])
+names(XData)=c("hab","clim")
+Y=as.matrix(data$Corvus_monedula)
+colnames(Y)="Corvus monedula"
+xy=as.matrix(data[,c("x","y")])
+studyDesign=data.frame(route=factor(data$Route))
+rownames(xy)=studyDesign[,1]
+rL=HmscRandomLevel(sData = xy)
+XFormula=~hab+poly(clim, degree=2, raw=TRUE)
+```
+
+```{r hmsc-ss-show-data, echo=F}
+data %>% 
+  head() %>% 
+  kable(format = "html") %>% 
+  kable_minimal() %>% 
+  scroll_box(height = "200px", width = "800px")
+```
 ---
 class: inverse, center, middle 
 # Copulas 

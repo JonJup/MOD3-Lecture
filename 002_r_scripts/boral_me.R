@@ -3,17 +3,42 @@
 ### --- BORAL --- ###
 # ----------------- #
 
-# install JAGS from https://sourceforge.net/projects/mcmc-jags/files/
-# install rjags package 
+# First you need to install the following packages or programs: 
+# JAGS from https://sourceforge.net/projects/mcmc-jags/files/
+# install.packages("rjags")
 # devtools::install_github('andyhoegh/UncertainOrd')
 
-pacman::p_load(boral, corrplot, rjags, mvabund, UncertainOrd)
+
+# setup -------------------------------------------------------------------
+pacman::p_load(boral,
+               corrplot,
+               mvabund,
+               rjags,
+               UncertainOrd)
+
+
+# prepare data ------------------------------------------------------------
+#load spider data from mvabund package as example data set. 
 data(spider)
+# extract abundance data.frame from list 
 Y <- spider$abund
-fit_unconstrained_po <- boral(y = Y, family = "poisson", lv.control = list(num.lv = 2), row.eff = "fixed", save.model = T)
-fit_unconstrained_nb <- boral(y = Y, family = "negative.binomial", lv.control = list(num.lv = 2), row.eff = "fixed", save.model = T)
+
+# fit unconstrained poisson and nb models 
+fit_unconstrained_po <- boral(y = Y, 
+                              family = "poisson", 
+                              lv.control = list(num.lv = 2), 
+                              row.eff = "fixed", 
+                              save.model = T)
+fit_unconstrained_nb <- boral(y = Y, 
+                              family = "negative.binomial", 
+                              lv.control = list(num.lv = 2), 
+                              row.eff = "fixed", 
+                              save.model = T)
+
+# save model objects to file 
 saveRDS(fit_unconstrained_po, "003_processed_data/boral_unconstrained_poisson.RDS")
 saveRDS(fit_unconstrained_nb, "003_processed_data/boral_unconstrained_negbinom.RDS")
+
 summary(fit_unconstrained_po)
 plot(fit_unconstrained_po)
 suppressMessages(lvsplot(fit_unconstrained_nb))
@@ -57,7 +82,8 @@ s2c <- grepl(x=colnames(samples), pattern="lvs+.+\\d,2")
 samples1 <- samples[,s1c]
 samples2 <- samples[,s2c]
 
-par(mfrow=c(1,2))
+options(warn=-1)
+
 po1 <-CredibleViz(coord1=samples1, coord2=samples2,type = "point",items=c(1,20,26))
 po2 <-CredibleViz(coord1=samples1, coord2=samples2,type = "scatter",items=c(1,20,26))
 po3 <-CredibleViz(coord1=samples1, coord2=samples2,type = "circles",items=c(1,20,26))
