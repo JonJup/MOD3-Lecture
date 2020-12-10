@@ -27,6 +27,10 @@ knitr::opts_chunk$set(cache = FALSE,fig.pos = 'H',fig_cap=TRUE)
 pacman::p_load(corrplot, 
                data.table,
                dplyr, 
+               here,
+               Hmsc,
+               ggplot2,
+               ggtree,
                kableExtra, 
                magrittr,
                tmap, 
@@ -34,7 +38,6 @@ pacman::p_load(corrplot,
                UncertainOrd)
 tmap_mode("view")
 ```
-
 
 ```{r todo list}
 #TODO Abstand zwischen Bullets
@@ -44,13 +47,8 @@ tmap_mode("view")
 #TODO Latent variable intro slide 
 
 ```
-
+For these slides and additional material see [here](https://jonjup.netlify.app/post/)
 ---
-
-
-<!--TODO -->  
-<!--# TODO serial slide-->   
-<!--# TODO bullet color-->  
 
 # Plan for today 
 
@@ -79,110 +77,173 @@ class: inverse, center, middle
 # ... well first, what's old? 
 
 --
+.pull-left[
+  .blockquote[
+    ### `r icon::fa("comment-dots")` Question
+    What does multivariate mean? 
+  ]
+]
 
-brainstrom : What Methods do you know? 
+.pull-right[
+  .blockquote[
+    ### `r icon::fa("comment-dots")` Question
+    What methods do you know?
+  ]
+]
 
 --
 
-- PCA
-- RDA
-- PERMANOVA
-- CA/ CCA
-- Random Forests 
-- Clustering Methods 
+.pull-left[
+- multi-response   
+- **Y** is a matrix not a vector
+]
+
+--
+
+.pull-right[
+- PCA  
+- RDA  
+- PERMANOVA  
+- CA/ CCA  
+- Random Forests   
+- Clustering Methods   
+]
+
 
 ---
-# Bi/Triplot
+
+# What does it look like in R? 
 
 ```{r load vegan, results='hide', echo = T, message = F}
-library(vegan)
-data(dune)
-data(dune.env)
-rda_object <- rda(dune ~ ., dune.env)
+# library(vegan)
+# data(dune)
+# data(dune.env)
+# rda_object <- rda(dune ~ ., dune.env)
 ```
 
 ---
 # Bi/Triplot
-```{r, fig.width = 6, fig.height = 6, fig.align="center"}
-plot(rda_object)
+```{r wn-prepare-biplot, echo=FALSE}
+# par(mar=c(0,0,0,0))
+```
+
+```{r wn-biplot, fig.width = 7, fig.height = 7, fig.align="center"}
+# plot(rda_object)
 ```
 
 ---
-# What do most ordinations have in common? 
+# Common ground? 
 
 --
 
-They are based on some notion of a distance metric
+They are based on some notion of a .blue[**distance metric**].  
 
 --
 
-## fixed
+.pull-left[
+.blue[**fixed**]
 
 - PCA and RDA: Euclidean 
 - CA and CCA: $\chi^2$-distance
+]
 
 --
 
-## flexible
+.pull-right[
+.blue[**flexible**]
 
 - NMDS 
 - PCoA
 - dbRDA
-
----
-
-# How does that differ from the univerate and why? 
+]
 
 --
 
+.blockquote[
+  ### `r icon::fa("comment-dots")` Question
+  How does this differ form univariate analysis?
+]
+---
+
+
+
+# Models! 
+
 In univariate analyses we mostly use models:
+
+--
+
 - linear model 
+
+--
+
 - linear mixed model 
+
+--
+
 - generalized linear model 
+
+--
+
 - generalized additive models 
 
 --
 
-$\rightarrow$ .blue[**why not in multivariate analyses?**]
+`r icon::fa("question-circle")` why not in multivariate analyses?
 
 ---
 class: middle, center
 
-```{r, fig.align="center", echo = F}
-knitr::include_graphics("old_pc.gif")
+```{r, fig.align="center", echo = F, fig.width=8, fig.height=8}
+# knitr::include_graphics("old_pc.gif")
 ```
 
 ---
 # Notation 
-$s=1,...,S$ species   
-$i=1,...,N$ sites   
-$p=1,...,P$ environmental variables   
-$r=1,...,R$ latent variables   
----
 
+**Y** is a N $\times$ S matrix of occurrences\ abundances with elements $y_{is}$  
+**X** is a N $\times$ P matrix of environmental variables with elements $x_{ip}$   
+$\mathbf{\Lambda}$ is a R $\times$ S matrix of species loadings with elements $\lambda_{rs}$   
+$\mathbf{\Psi}$ is a N $\times$ R matrix of site loadings with elements $\psi_{ir}$    
+**T** is a S $\times$ J matrix of species traits with elements $t_{sj}$   
+---
+.footnote[Gauch & Whittaker (1972), Zuur et al. (2007)]
 # The idea is old 
 
 The Gaussian response model: 
-$$Y_i = c\ exp\bigg(- \frac{(X_i - u)^2}{2t^2}\bigg) $$
+$$Y_{si} = c_s\ exp\bigg(- \frac{(X_i - u_s)^2}{2t_s^2}\bigg) $$
 --
-Can be rewritten as a GLM:
-$$Y_i = exp \bigg(ln(c) - \frac{u^2}{2t^2} + \frac{u}{t^2}x_i - \frac{1}{2t^2}x^2_i\bigg) = exp(b_1 + b_2 x_i + b_3 x_i^2)$$
+
+.blue[c]: maximal abundance, .blue[u]: location of optima, .blue[t]: tolerance  
+
 --
-with 
-$$ t = \frac{1}{\sqrt{-2b_3}}; u = \frac{-b_2}{2b_3}; c =     exp \bigg(b_1 - \frac{b_2^2}{4b_3}\bigg)$$ 
+
+As GLM:
+\begin{align}
+Y_{si} &= exp \bigg(ln(c_s) - \frac{u_s^2}{2t_s^2} + \frac{u_s}{t_s^2}x_i - \frac{1}{2t_s^2}x^2_i\bigg)
+&=exp(b_{1s} + b_{2s}\ x_i + b_{3s}\ x_i^2)
+\end{align}
+
 --
-For .blue[S] species and .blue[P] environmental variables we would need: $(1+2P)S$ parameters.  
-For 10 species and 5 variables 110 parameters.  
+
+with  
+
+$$t_s = \frac{1}{\sqrt{-2b_{3s}}}; u_s = \frac{-b_{2s}}{2b_{3s}}; c_s = exp \bigg(b_{1s} - \frac{b_{2s}^2}{4b_{3s}}\bigg)$$ 
 
 ---
 # Restricted Gaussian Regression 
 
-Gradients $z$ as linear combinations of measured variables $x$:
-$$z_r = \Sigma_{p =  1}^P \alpha_{rp} x_p$$
+Uses $(1+2P)S$ parameters.  
+For 10 species and 5 variables 110 parameters.   
+
+--
+
+Gradients $\mathbf{\Psi}$ as linear combinations of measured variables $x$:
+$$\psi_r = \Sigma_{p =  1}^P \alpha_{rp}\ x_p$$
 --
 
 Plug gradients back into Gaussian regression
-$$Y_i = c\ exp\bigg(\frac{(z_ri - u_r)^2}{2t_r^2}\bigg)$$
+$$Y_{is} = c_s\ exp\bigg(\frac{(\psi_{ir} - u_{sr})^2}{2t_{sr}^2}\bigg)$$
 
 If R $\ll$ P, this reduces the number of parameters. 
 
@@ -194,7 +255,7 @@ Model-based approaches assume a parametric generative model
 --
 
 .blue[**Terms are not consistent**]:  
-Roberts (2019) and Warton *el al.* (2012) disagree about whether CA is distance-based
+Roberts (2019) and Warton *el al.* (2012) disagree about  CA
 
 --
 
@@ -229,7 +290,7 @@ background-position: 50% 70%
 
 ---
 background-image: url("figures/WWW12_1.png")
-background-size: 800px
+background-size: 700px
 background-position: 50% 50%
 
 # Are models better? 
@@ -239,7 +300,7 @@ Every distance metric assumes a mean-variance relationship
 .footnote[Warton *et al.* (2012)]
 ---
 background-image: url("figures/WWW12_2.png")
-background-size: 400px
+background-size: 500px
 background-position: 50% 75%
 
 # Are models better? 
@@ -249,7 +310,7 @@ Every distance metric assumes a mean-variance relationship
 .footnote[Warton *et al.* (2012)]
 ---
 background-image: url("figures/WWW12_3.png")
-background-size: 400px
+background-size: 500px
 background-position: 50% 75%
 
 # Are models better? 
@@ -285,8 +346,12 @@ R package published in 2012  (Wang et al. 2012)
 
 **M**ulti**v**ariate **Abund**ance data  
 
+--
+
 Multivariate
 - many, possibly correlated responses 
+
+--
 
 Abundance
 - strong mean-variance relationship 
@@ -297,26 +362,44 @@ We could use mixed models and model the taxon as a random effect.
 
 --
 
-$$Abundace \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$
+$$Abundance \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$
 --
 
-1. $y_{ij}$ are independand, conditional on mean  $\mu_{ij}$
-2. Conditional on $\mu_{ij}$, data come from a .blue[known distribution]  
-3. straight line relationship between some function $\mu_{ij}$ and x, with error $\epsilon_{ij}$
+1. $y_{is}$ are .blue[independent], conditional on mean  $\mu_{is}$
 
+--
 
-$$g(\mu_{ij}) = \beta_0j + x^T_j \beta_j + \epsilon_{ij}$$
-4. $\epsilon$ are normally distributed. They introduce correlation between response within observatios. 
-$$\epsilon_{ij} \sim MVN(0, \Sigma)$$
+2. Conditional on $\mu_{is}$, data come from a .blue[known distribution]  
+
+--
+
+3. .blue[straight line relationship] between some function $\mu_{is}$ and x, with error $\epsilon_{is}$
+
+$$g(\mu_{is}) = \beta_{0s} + x^T_i \beta_s + \epsilon_{is}$$
+--
+
+4. $\epsilon$ are normally distributed. 
+$$\epsilon_{is} \sim MVN(0, \Sigma)$$
+--
+
+They introduce correlation between response within observations. 
+
 ---
 # Implementations in R
 
-- lme4 
-- MCMCglmm 
-- Purpose written code (e.g. Pollock et al 2014)
+- lme4 (Bates *et al*., 2015)
+- MCMCglmm (Hadfield, 2010)
+- purpose written code (e.g. Pollock *et al*. 2014)
+
+--
+
+.blockquote[
+  ### `r icon::fa("comment-dots")` Question
+  What is problematic with this approach?
+]
 
 ---
-# Whats the problem with this approach? 
+# Problem? Parameters! 
 
 |  # responses | # parameters in $\Sigma$ |
 | :---- |:--- |
@@ -325,13 +408,33 @@ $$\epsilon_{ij} \sim MVN(0, \Sigma)$$
 | 20    | 210 |
 | 40    |  820 |
 
-- No convergence in ML GLMM  
-- long run time, not all parameters converge, and big influence of prior as $\frac{\# data}{\#parameters}$ is small. 
-  
+--
+.pull-left[
+.blue[maximum likelihood]  
+- No convergence
+]
+
+--
+
+.pull-right[
+.blue[bayesian]  
+- long run time  
+- not all parameters converge  
+- big influence of prior
+]
+
 ---
 # Simplify
-mvabund uses design-based inference and assumes simple correlation structures.  
-This is fine if we are primarily interested in species environment relationships  
+
+Instead of estimating we can assume $\Sigma$.
+
+--
+
+mvabund uses design-based inference.  
+
+--
+
+Ok, if primary interest is species environment relationships  
 
 --
 Multivariate: row resampling for inference, preserves species correlations  
@@ -339,85 +442,114 @@ Abundance: separate GLM for each species
 ---
 # Test statistics  
 
-default: $\Sigma\ Likelihood\ Ratios$
+.content-box-blue[Sum of Likelihood Ratios]  
 \begin{align}
 L & = 2 \times (l_M - l_m)  \\
 L &\sim \chi^2_{p_M - p_m} \\  
 \end{align}
 
-This does not account for correlations in the statistic but in the pseudo-*p*-value.  
 --
-  
-  
-Alternatives:      
-  
-Wald statistic   
+
+Test statistic does not account for correlations but the *p* -value.  
+
+--
+   
+.content-box-blue[Wald statistic]  
 \begin{align}
 W &= \frac{(\beta_m - \beta_0)^2}{var(\beta_m)} \\
 z &= \sqrt(W)
 \end{align}
 
-Score statistic  
-see e.g. Dunn \& Smyth (2018)
+--
+
+.content-box-blue[Score statistic]   
+see e.g. Dunn & Smyth (2018)
 
 ---
 # Correlation options
   
-.blue["I"]: No correlation, default setting   
-.blue["R"]: Assumes correlation, cf. mixed model  
-.blue["shrink"]: middle option, shrinks correlation matrix to $I$ with ridge regularization (Warton (2008))  
+.content-box-blue["I"]  
+No correlation, default setting  
+
+--
+
+.content-box-blue["R"]   
+estimates $\Sigma$, see mixed model 
+
+--
+
+.content-box-blue["shrink"]  
+middle option, shrinks correlation matrix to $I$ with ridge regularization (Warton, 2008)  
   
-For R and shrink LR is not available. They are estimated with generalized estimation equations (Warton 2011) which do not produce likelihoods. 
+--
+  
+For .blue[R] and .blue[shrink] $\Sigma LR$ is not available. They are estimated with generalized estimation equations (Warton, 2011) which do not produce likelihoods. 
 
 ---
 
 ```{r}
-library(mvabund)
-data("Tasmania")
-attach(Tasmania)
-head(copepods[,1:3])
+# library(mvabund)
+# data("Tasmania")
+# attach(Tasmania)
+# head(copepods[,1:3])
 ```
+
+--
+
 ```{r}
-tasmvabund <- mvabund(copepods)
-class(tasmvabund)
+# tasmvabund <- mvabund(copepods)
+# class(tasmvabund)
 ```
+
 ---
+
 ```{r, message = FALSE, fig.align="center", warning=FALSE, fig.height=6}
-plot(tasmvabund~treatment, col = as.numeric(block))
+# plot(tasmvabund~treatment, col = as.numeric(block))
 ```
 ---
 ```{r, message = FALSE, warning=FALSE, fig.align="center",  fig.height=7}
-meanvar.plot(copepods~tr.block, col = as.numeric (treatment))
+# meanvar.plot(copepods~tr.block, col = as.numeric (treatment))
 ```
 ---
 # Fitting a model 
 ```{r}
-tas.nb <- manyglm(copepods ~ block*treatment, 
-                  family = "negative.binomial")
+# tas.nb <- manyglm(copepods ~ block*treatment, 
+#                   family = "negative.binomial")
 ```
 
 
-$$Y_{ij} \sim NB(\mu_{jkl}, \phi_j)$$
-$$log(\mu_{jkl}) = intercept_j + block_{jkl} + treatment_{jl} + block \times treatment_{jkl}$$
+$$Y_{is} \sim NB(\mu_{skl}, \phi_s)$$
+$$log(\mu_{jkl}) = intercept_s + block_{skl} + treatment_{sl} + block \times treatment_{skl}$$
+with treatment level .blue[k] and block .blue[l]
+
 ---
 # Checking model assumptions 
 ```{r mvabund Checking model assumptions 1, fig.align="center", fig.height=6, fig.width=6}
-plot.manyglm(tas.nb, which = 1)
+# plot.manyglm(tas.nb, which = 1)
 ```
+
 .footnote[Dunn & Smyth (1996)]
+
 ---
+
 # Checking model assumptions
 ```{r mvabund Checking model assumptions 2, fig.align="center", fig.height=6, fig.width=6}
-plot.manyglm(tas.nb, which = 2)
+# plot.manyglm(tas.nb, which = 2)
 ```
+
 .footnote[Dunn & Smyth (1996)]
+
 ---
+
 # Checking model assumptions
 ```{r mvabund Checking model assumptions 3, fig.align="center", fig.height=6, fig.width=6}
-plot.manyglm(tas.nb, which = 3)
+# plot.manyglm(tas.nb, which = 3)
 ```
+
 .footnote[Dunn & Smyth (1996)]
+
 ---
+
 # Testing Hypotheses
 
 ```{r mvabund Testing Hypotheses, comment=""}
@@ -428,24 +560,28 @@ plot.manyglm(tas.nb, which = 3)
 # anova_out
 ```
 ]
----
-```{r}
-library(lattice)
-a <- max(abs(coef(tas.nb)))
-colort <- colorRampPalette(c("blue", "white", "red"))
-plot.tas <- levelplot(t(as.matrix(coef(tas.nb))), ylab = "", xlab  = "", col.regions = colort(100), at=seq(-a,a,length = 100), scales = list( x= list(rot = 45)))
-print(plot.tas)
-```
----
-```{r}
-tas_pred = predict(tas.nb, type = "response")
-matplot(t(tas_pred[c(1,3),]), type = "l", xaxt = "n", log = "y", ylab = "Mean abundance [log]")
-axis(1, at =1:12, labels = colnames(copepods), las = 3)
-legend("topright", legend = levels(treatment), col = 1:2, lty = 1:2)
-```
-
 
 ---
+
+```{r mvabund-beta-plot, echo=FALSE, fig.align="center", fig.height=10, fig.width=10}
+# library(lattice)
+# a <- max(abs(coef(tas.nb)))
+# colort <- colorRampPalette(c("blue", "white", "red"))
+# plot.tas <- levelplot(t(as.matrix(coef(tas.nb))), ylab = "", xlab  = "", col.regions = colort(100), at=seq(-a,a,length = 100), scales = list( x= list(rot = 45)))
+# print(plot.tas)
+```
+
+---
+
+```{r mvabund-predictions, echo=FALSE, fig.align="center", fig.height=8, fig.width=8}
+# tas_pred = predict(tas.nb, type = "response")
+# matplot(t(tas_pred[c(1,3),]), type = "l", xaxt = "n", log = "y", ylab = "Mean abundance [log]")
+# axis(1, at =1:12, labels = colnames(copepods), las = 3)
+# legend("topright", legend = levels(treatment), col = 1:2, lty = 1:2)
+```
+
+---
+
 # Traits 
 Not discussed in lecture. See here for introduction:  
 https://rpubs.com/dwarton/68823
@@ -458,37 +594,30 @@ class: inverse, center, middle
 # VGLMs
 .footnote[see Dobson & Barnett (2018) for more on the exponential family]
 
-... are an extension of GLMs   
-GLMs are restricted to distributions from the .blue[exponential family].   
+... are an extension of GLMs 
+
+--
+
+- GLMs are restricted to distributions from the .blue[exponential family].   
 VGLMS are not.  
-VGLMs can have multiple linear predictors, for different parameters.  
-Explanatroy variables can differ between predictors.
----
-# The exponential family
-
-$$f(x, \theta) = s(x)\ t(\theta)\ exp (a(y)\ b(\theta))$$
---
-$$f(x, \theta) = exp(a(y)\ b(\theta) + c(\theta) + d(y)) $$
-with $c(\theta) = exp(t(\theta))$ and $d(y) = exp(s(y))$
 
 --
 
-.blue[Poisson]
-\begin{align}
-f(x,\lambda) &= \frac{\lambda^y e^{-\lambda}}{y!}\\
-\theta &= \lambda\\
-f(x, \theta) &= exp(log(\theta)\ y - \theta - log(y!))
-\end{align}
+- VGLMs can have .blue[multiple linear predictors], for different parameters.
 
+--
+
+- Explanatory variables can differ between predictors.
 
 ---
+
 # Reduced Rank VGLM  
 
 Reduce the dimensions, i.e. number of predictors $P$ by reduced rank regression   
 
 --
 
-Create latent variables $\nu$ from subset of environmental variables $X$
+Create latent variables $\psi$ from subset of environmental variables $x_2$
 
 --
 
@@ -496,10 +625,17 @@ $x = (x_1, x_2)$ and $B = c(B_1,B_2)$
 
 --
 $$B_2 = A C^T$$ 
-$$\nu = C^T x_2\ \ \ \ \ \ (site\ scores)$$
-$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu$$
+$$\psi = C^T x_2\ \ \ \ \ \ (site\ scores)$$
 --
-$\rightarrow$ Reduced Rank Regression is the same as RDA! 
+
+\begin{align}
+\eta &= B_1^T x_1 + A C^Tx_2 \\
+     &= B_1^T x_1 + A \nu
+\end{align}
+
+--
+
+`r icon::fa("exclamation-circle")` Reduced Rank Regression is the same as RDA! 
 
 
 ---
@@ -510,13 +646,14 @@ In ecology, unimodal responses are the norm (Oksanen & Minchin, 2002)
 
 --
 
-quadratic linear predictor  
+\begin{align}
+\eta &= B_1^T x_1 + A \psi\  & ordinary\ RR-VGLM \\
+     &= \beta_{1(s)}^T  + \beta_{2(s)}\ \psi + \beta_{3(s)}\ \psi^2 & quadratic\ RR-VGLM
+\end{align}
 
 --
 
-$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu\ \ \ \ \ \ \ ordinary\ RR-VGLM$$
-$$\eta_s = \beta_{1(s)}^T  + \beta_{2(s)}\ \nu + \beta_{3(s)}\ \nu^2\ \ \ \ \ \ \ quadratic\ RR-VGLM$$
-$$ log\ \mu_s(\nu) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\nu - u_s}{t_s} \bigg)^2 $$
+$$ log\ \mu_s(\psi) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\psi - u_s}{t_s} \bigg)^2 $$
 
 
 ---
@@ -525,125 +662,146 @@ $$ log\ \mu_s(\nu) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\nu - u_s}{t_s
 from ter Braak (1986)  
 
 ```{r load VGAM, message=FALSE, echo = F}
-library(VGAM)
-data(hspider)
+# library(VGAM)
+# data(hspider)
 ```
 
 ```{r, echo = F}
-
-hspider %>% 
-  kbl(format = "html") %>% 
-  scroll_box(height = "400px", width = "700px")
-
+# hspider %>% 
+#   kbl(format = "html") %>% 
+#   scroll_box(height = "400px", width = "700px")
 ```
 ---
 # Rank-1 Poisson CQO
-.scroll-output[
-```{r run cqo, message=FALSE, warning=F}
-set.seed(1234)
-hspider[, 1:6] <- scale(hspider[, 1:6]) # Standardized environmental variables
-p1ut.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
-                     Arctlute, Arctperi, Auloalbi, 
-                     Pardlugu, Pardmont, Pardnigr, 
-                     Pardpull, Trocterr, Zoraspin) ~ 
-                 WaterCon + BareSand + FallTwig + CoveMoss + 
-                 CoveHerb + ReflLux,
-               family = poissonff, 
-               data = hspider, 
-               eq.toler = FALSE, 
-               trace = FALSE)
+
+```{r cqo-run-dont-show, message=FALSE, warning=FALSE, results='hide', echo=T}
+# set.seed(1234)
+# hspider[, 1:6] <- scale(hspider[, 1:6]) # Standardized environmental variables
+# p1ut.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
+#                      Arctlute, Arctperi, Auloalbi, 
+#                      Pardlugu, Pardmont, Pardnigr, 
+#                      Pardpull, Trocterr, Zoraspin) ~ 
+#                  WaterCon + BareSand + FallTwig + CoveMoss + 
+#                  CoveHerb + ReflLux,
+#                family = poissonff, 
+#                data = hspider, 
+#                eq.toler = FALSE, 
+#                trace = FALSE)
 ```
-]
+
+
 
 ```{r options cqo plot1, echo =F}
-S <- ncol(depvar(p1ut.hs)) # Number of species
-clr <- (1:(S+1))[-7] # Omits yellow
+# S <- ncol(depvar(p1ut.hs)) # Number of species
+# clr <- (1:(S+1))[-7] # Omits yellow
 ```
 ---
 # Latent Variable Plot 
-```{r cqo lvplot 1, message=FALSE, warning=F, fig.align="center"}
-lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
+```{r cqo lvplot 1, message=FALSE, warning=F, fig.align="center", echo=FALSE}
+# lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
 ```
 
 ---
 # 2d Perspective Plot 
-```{r CQO persp plot, fig.align="center"}
-persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
+```{r CQO persp plot, fig.align="center", echo=F}
+# persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
 ```
 
 ---
 # Constrained Coefficients
 ```{r 1d CQO variables}
-concoef(p1ut.hs) %>%  as.vector() %>% round(2) -> p1ut_coef
-names(p1ut_coef) <- row.names(concoef(p1ut.hs))
-print(p1ut_coef)
+# concoef(p1ut.hs) %>%  as.vector() %>% round(2) -> p1ut_coef
+# names(p1ut_coef) <- row.names(concoef(p1ut.hs))
+# print(p1ut_coef)
 ```
 
 --
-.scroll-box-8[
+
 ```{r 1d CQO Tolerances}
-Tol(p1ut.hs)[1, 1, ]
+# Tol(p1ut.hs)[1, 1, ]
 ```
-]
+
 ---
+
 # Let's add a second gradient
-.small[
-```{r run 2d CQO, echo=T, results='hide'}
-p2et.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, ... = Pardpull,Trocterr, Zoraspin)
-               ~ WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
-               poissonff, data = hspider, Crow1positive = FALSE, Rank = 2,
-               I.toler = TRUE, Bestof = 2)
+
+```{r run 2d CQO, echo=T, results='hide', message=FALSE,warning=FALSE}
+# p2et.hs <- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
+#                      Arctlute, Arctperi, Auloalbi, 
+#                      Pardlugu, Pardmont, Pardnigr,
+#                      Pardpull,Trocterr, Zoraspin) ~
+#                 WaterCon + BareSand + FallTwig + 
+#                  CoveMoss + CoveHerb + ReflLux,
+#                family = poissonff, 
+#                data = hspider, 
+#                Crow1positive = FALSE, 
+#                Rank = 2,
+#                I.toler = TRUE, 
+#                Bestof = 2)
 ```
-]
+
 ---
-# 2 Graident Latent Variable Plot 
+
+# Rank 2 Latent Variable Plot 
 
 ```{r, 2d latent variable plot, fig.align="center" , echo = F}
-lvplot(p2et.hs, ellipse = FALSE, label = TRUE, xlim = c(-3, 5.7),
-C = TRUE, Ccol = "brown", sites = TRUE, scol = "gray50",
-pcol = "blue", pch = "+", chull = TRUE, ccol = "gray50")
+# lvplot(p2et.hs, ellipse = FALSE, label = TRUE, xlim = c(-3, 5.7),
+# C = TRUE, Ccol = "brown", sites = TRUE, scol = "gray50",
+# pcol = "blue", pch = "+", chull = TRUE, ccol = "gray50")
 ```
 
 ---
 # 3d Perspective plot
-```{r CQO 2d persp plot, echo=T, results='hide', fig.align="center"}
-persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), 
-      theta = 120, phi = 20)
+```{r CQO 2d persp plot, echo=FALSE, results='hide', fig.align="center"}
+# persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), 
+#       theta = 120, phi = 20)
 ```
 ---
 # Extended ouput 
 
 .scroll-output[
 ```{r CQO coefficients}
-coef(p2et.hs)
+# coef(p2et.hs)
 ```
 
 ]
 ---
 # Constained Additive Ordination 
-Besides VGLMs, additive models VGAMs can be fitted.  
+In addition to VGLMs, additive models (VGAMs) can be fitted.  
 - Syntax similar to CQO 
-- new argument: *df1.nl*: effective non-linear degrees of freedom  
+- new argument: *df1.nl* : effective non-linear degrees of freedom  
 - controls how smooth the output is (0 = linear)
-.scroll-output[
-```{r fit CAO}
-set.seed(1)
-# p1cao.hs <- cao(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi, Auloalbi,
-#                       Pardlugu, Pardmont, Pardnigr, Pardpull, Trocterr, Zoraspin) ~
-#                 WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
-#                 poissonff, data = hspider, Rank = 1, df1.nl = 2, Bestof = 10, 
+.small[
+```{r fit CAO, message=FALSE, warning=FALSE,results='hide'}
+# set.seed(1)
+# p1cao.hs <- cao(cbind(Alopacce, Alopcune, Alopfabr, 
+#                       Arctlute, Arctperi, Auloalbi,
+#                       Pardlugu, Pardmont, Pardnigr, 
+#                       Pardpull, Trocterr, Zoraspin) ~
+#                 WaterCon + BareSand + FallTwig + 
+#                   CoveMoss + CoveHerb + ReflLux,
+#                 family = poissonff, 
+#                 data = hspider, 
+#                 Rank = 1, 
+#                 df1.nl = 2,
+#                 Bestof = 10,
 #                 Crow1positive = FALSE)
 ```
-
 ]
+
 ---
+
 # CAO single species plots
 
+.scroll-output[
 ```{r, cao plot, fig.align="center", echo = F}
-# par(mfrow = c(3,3))
 # plot(p1cao.hs, lcol = "blue", lwd = 2, ylim = c(-5, 5), xlab = "", ylab = "")
 ```
+]
+
 ---
+
+# CAO Latent variable Plot 
 ```{r, cao persp, fig.align="center", echo = F}
 # par(mfrow = c(1,1))
 # persp(p1cao.hs,col = clr, label = TRUE)
@@ -652,12 +810,34 @@ set.seed(1)
 # In practice 
 
 - They are not commonly used 
-- individual GLMs outperformed CQO in predicting species ranges (Baselga & Araújo, 2009)
-- CQO better for rare species but GLM predicts better (Bonthoux *et al.* 2013) 
-- mvabund glms differentiated between noise and causal variables better than CQO (Jupke & Schäfer, 2020)
+
+--
+
+- GLM predicts species ranges better (Baselga & Araújo, 2009)
+
+--
+
+- CQO better for rare species (Bonthoux *et al.* 2013) 
+
+--
+
+- manyglms differentiated between noise and causal variables better than CQO (Jupke & Schäfer, 2020)
+
+--
+
 - CQO and CAO predict better (but still bad) than GLM and GAM to dissimilar conditions (Maguire *et. al.*, 2016) 
-- Applied studies mostly with fish (e.g. Vilizzi et al. (2012), Top *et al.* (2016))
-- "limitations on the number of species, steepness of the learning curve and low numerical stability of the algorithm" (ter Braak & Šmilauer 2015)
+
+--
+
+- Applied studies mostly with fish (e.g. Vilizzi et al. (2012))
+
+--
+
+<blockquote>
+limitations on the number of species, steepness of the learning curve and low numerical stability of the algorithm
+.right[-- <cite>ter Braak & Šmilauer 2015</cite>]
+</blockquote>
+
 ---
 class: inverse, center, middle
 # Latent Variable Models 
@@ -726,9 +906,9 @@ class: inverse, center, middle
 --
 
 - Priors:
-- $\theta_{0j} \sim N(0,100)$
-- $\theta_{\lambda} \sim U(0,50)\ \forall\ \theta_{\lambda}:0\notin \theta_{\lambda}$ 
-- $\theta_j; \alpha_i \sim N(0,20)$
+  - $\theta_{0j} \sim N(0,100)$
+  - $\theta_{\lambda} \sim U(0,50)\ \forall\ \theta_{\lambda}:0\notin \theta_{\lambda}$ 
+  - $\theta_j; \alpha_i \sim N(0,20)$
 ---
 
 # Co-occurence is not Interaction 
@@ -758,16 +938,27 @@ class: inverse, center, middle
 
 .scroll-output[
 ```{r read-boral-ucpo, echo=FALSE}
-fit_unconstrained_po <-readRDS("../003_processed_data/boral_unconstrained_poisson.RDS")
+# fit_unconstrained_po <-readRDS("../003_processed_data/boral_unconstrained_poisson.RDS")
+# pacman::p_load(boral, rjags, mvabund, UncertainOrd)
+# data(spider)
+# Y <- spider$abund
 ```
 
-```{r boral-in-action}
-pacman::p_load(boral, rjags, mvabund, UncertainOrd)
-data(spider)
-Y <- spider$abund
-#fit_unconstrained_po <- boral(y = Y, family = "poisson", lv.control = list(num.lv = 2),row.eff = "fixed",save.model=TRUE)
-summary(fit_unconstrained_po)
+```{r boral-in-action, eval=F}
+# pacman::p_load(boral, rjags, mvabund, UncertainOrd)
+# data(spider)
+# Y <- spider$abund
+# fit_unconstrained_po <- boral(y = Y, 
+#                               family = "poisson", 
+#                               lv.control = list(num.lv = 2),
+#                               row.eff = "fixed",
+#                               save.model=TRUE)
+# summary(fit_unconstrained_po)
 ```
+```{r boral-in-action2, echo=F}
+# summary(fit_unconstrained_po)
+```
+
 ]
 
 ---
@@ -775,34 +966,33 @@ summary(fit_unconstrained_po)
 # Check model assumptions
 
 ```{r check-boral-ucpo, fig.align="center", fig.height=8, fig.width=8, echo=FALSE}
-par(mfrow=c(2,2))
-res <- capture.output(plot(fit_unconstrained_po))
+# par(mfrow=c(2,2))
+# res <- capture.output(plot(fit_unconstrained_po))
 ```
 ---
 # Check model assumptions - NB
 ```{r check boral 2, fig.align="center", fig.height=8, fig.width=8, echo=FALSE}
-fit_unconstrained_nb <-readRDS("../003_processed_data/boral_unconstrained_negbinom.RDS")
-par(mfrow=c(2,2))
-res = capture.output(plot(fit_unconstrained_nb))
+# fit_unconstrained_nb <-readRDS("../003_processed_data/boral_unconstrained_negbinom.RDS")
+# par(mfrow=c(2,2))
+# res = capture.output(plot(fit_unconstrained_nb))
 ```
 ---
 # Ordination Diagram
 ```{r ordiplot boral 1, fig.align="center", fig.height=8, fig.width=8, echo=FALSE}
-suppressMessages(lvsplot(fit_unconstrained_nb))
+# suppressMessages(lvsplot(fit_unconstrained_nb))
 ```
 ---
 ```{r boral load constrained, echo=FALSE}
-fit_constrained_nb <- readRDS("../003_processed_data/boral_constrained_negbinom.RDS")
+# fit_constrained_nb <- readRDS("../003_processed_data/boral_constrained_negbinom.RDS")
+# X <- scale(spider$x)
 ```
 
 # Constrained Ordination 
 
---
-
 .scroll-output[
-```{r boral fit constrained}
-X <- scale(spider$x)
-
+```{r boral fit constrained, eval = F}
+# X <- scale(spider$x)
+# 
 # fit_constrained_nb <-
 #   boral(
 #     y = Y,
@@ -811,35 +1001,40 @@ X <- scale(spider$x)
 #     lv.control = list(num.lv = 2),
 #     save.model = TRUE
 #   )
-
-summary(fit_constrained_nb)
+# 
+# summary(fit_constrained_nb)
 ```
+```{r boral-fit-constrained-3,echo=F}
+# summary(fit_constrained_nb)
+```
+
 ]
+
 ---
 # Correlation plots 
 ```{r boral correlation plots, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
-envcors <- get.enviro.cor(fit_constrained_nb)
-par(mfrow=c(1,1))
-corrplot(
-        envcors$sig.cor,
-        type = "lower",
-        diag = FALSE,
-        title =  "Correlations due to covariates", 
-        mar = c(3,0.5,2,1), 
-        tl.srt = 45) 
+# envcors <- get.enviro.cor(fit_constrained_nb)
+# par(mfrow=c(1,1))
+# corrplot(
+#         envcors$sig.cor,
+#         type = "lower",
+#         diag = FALSE,
+#         title =  "Correlations due to covariates", 
+#         mar = c(3,0.5,2,1), 
+#         tl.srt = 45) 
 ```
 ---
 # Correlation plots 
 ```{r boral correlation plots2, echo=FALSE, fig.align="center", fig.width=8, fig.height=8}
-rescors <- get.residual.cor(fit_constrained_nb) 
-corrplot(
-        rescors$sig.cor,
-        type = "lower",
-        diag = FALSE,
-        title =  "Residual correlations",
-        mar = c(3, 0.5, 2, 1),
-        tl.srt = 45
-)
+# rescors <- get.residual.cor(fit_constrained_nb) 
+# corrplot(
+#         rescors$sig.cor,
+#         type = "lower",
+#         diag = FALSE,
+#         title =  "Residual correlations",
+#         mar = c(3, 0.5, 2, 1),
+#         tl.srt = 45
+# )
 ```
 ---
 # Uncertainty in latent variable models
@@ -847,16 +1042,16 @@ corrplot(
 - based on 95% credible intervals
 
 ```{r load uncertainord file, echo=FALSE}
-uncertain_plot <- readRDS("../003_processed_data/boral_uncertainplot.RDS")
-par(mfrow=c(1,1))
+# uncertain_plot <- readRDS("../003_processed_data/boral_uncertainplot.RDS")
+# par(mfrow=c(1,1))
 ```
 .scroll-output[
 ```{r, echo=FALSE}
-options(warn=-1)
-uncertain_plot[[1]]$plot.obj
-uncertain_plot[[2]]$plot.obj
-uncertain_plot[[3]]$plot.obj
-uncertain_plot[[4]]$plot.obj
+# options(warn=-1)
+# uncertain_plot[[1]]$plot.obj
+# uncertain_plot[[2]]$plot.obj
+# uncertain_plot[[3]]$plot.obj
+# uncertain_plot[[4]]$plot.obj
 
 ```
 ]
@@ -1010,13 +1205,21 @@ background-position: 50% 50%
 ---
 # Joint Species Distribution Models
 
-- biotic interactions are also important! (Wisz *et al.*, 2013)
+- biotic interactio   ns are also important! (Wisz *et al.*, 2013)
+
+--
 
 - limit range to that of another species (Schweiger *et al.*, 2012)
 
+--
+
 - use species at predictor variables (Leathwick & Austin, 2001)
 
+--
+
 - JSDMs use resdiual correlation latent variables (Pollock *et al.* 2014)
+
+--
 
 \begin{align}
 Pr(Y_{ij}=1) & = Pr(Z_{ij} > 0) \\
@@ -1030,7 +1233,11 @@ B_{jk} & \sim N(\mu_k, \sigma_k)\\
 
 - alternative is called stacked SDM (many single species models)
 
+--
+
 - many studies compare predictive performance 
+
+--
 
 - JSDMs better for communities with many rare species but rank order differs according to evaluation metric (Norberg *et al.*, 2019)
 
@@ -1040,55 +1247,495 @@ B_{jk} & \sim N(\mu_k, \sigma_k)\\
 
 --
 
-- **community level models**  "predict first, assemble later" vs. "assemble first, predict later" 
+- community level models  "predict first, assemble later" vs. "assemble first, predict later" 
 
 --
 
 - clm outperform stacked models slightly (Maguire *et al.*, 2016)
+
+--
+
 - clm perform poorly (Baselga & Araújo, 2010)
 
 ---
 background-image: url("figures/ovaskainen2017_1.png")
-background-size: 700px
-background-position: 50% 50%
+background-size: 550px
+background-position: 50% 75%
 # Hierarchical modeling of species communities
 .footnote[Ovaskainen *et al.* (2017)]
 
 ---
-background-image: url("figures/ovaskainen_abrego2020-1.png")
-background-size: 700px
-background-position: 50% 50%
+background-image: url("figures/ovaskainen_abrego_2020-1.png")
+background-size: 550px
+background-position: 50% 70%
 # Hierarchical modeling of species communities
 .footnote[Ovaskainen & Abrego (2020)]
 
 ---
-# Single Species - Corvus Monedula
+# HMSC - Single Species Example
 
 ```{r hmsc-ss-load ,echo=F, results='hide'}
-library(Hmsc)
-data.directory="../001_raw_data/hmsc_birds/data/"
-model.directory="../003_processed_data/hmsc_mcmc/"
-data = fread(file.path(data.directory, "data.csv"), stringsAsFactors=TRUE)
-data=data[Year==2014]
-data%<>%droplevels()
-XData=as.data.frame(data[,c("Habitat", "AprMay")])
-names(XData)=c("hab","clim")
-Y=as.matrix(data$Corvus_monedula)
-colnames(Y)="Corvus monedula"
-xy=as.matrix(data[,c("x","y")])
-studyDesign=data.frame(route=factor(data$Route))
-rownames(xy)=studyDesign[,1]
-rL=HmscRandomLevel(sData = xy)
-XFormula=~hab+poly(clim, degree=2, raw=TRUE)
+# library(Hmsc)
+# data.directory="../001_raw_data/hmsc_birds/data/"
+# model.directory="../003_processed_data/hmsc_mcmc/"
+# data = fread(file.path(data.directory, "data.csv"), stringsAsFactors=TRUE)
+# data=data[Year==2014]
+# data%<>%droplevels()
+# #XData=as.data.frame(data[,c("Habitat", "AprMay")])
+# #names(XData)=c("hab","clim")
+# #Y=as.matrix(data$Corvus_monedula)
+# #colnames(Y)="Corvus monedula"
+# xy=as.matrix(data[,c("x","y")])
+# studyDesign=data.frame(route=factor(data$Route))
+# rownames(xy)=studyDesign[,1]
+# #rL=HmscRandomLevel(sData = xy)
+# #XFormula=~hab+poly(clim, degree=2, raw=TRUE)
 ```
 
 ```{r hmsc-ss-show-data, echo=F}
-data %>% 
-  head() %>% 
-  kable(format = "html") %>% 
-  kable_minimal() %>% 
-  scroll_box(height = "200px", width = "800px")
+# data %>% 
+#   head() %>% 
+#   kable(format = "html") %>% 
+#   kable_minimal() %>% 
+#   scroll_box(height = "300px", width = "800px")
 ```
+---
+# HMSC - Single Species Example
+```{r hmsc-ss-define-full-model}
+# m_full = Hmsc(Y=as.matrix(data$Corvus_monedula),
+#               XData=as.data.frame(data[,c("Habitat", "AprMay")]),
+#               XFormula=~Habitat+poly(AprMay, degree=2, raw=TRUE),
+#               distr = "lognormal poisson",
+#               studyDesign = data.frame(route=factor(data$Route)),
+#               ranLevels=list(route=HmscRandomLevel(sData = xy)))
+```
+
+--
+
+.blue[**lognormal poisson?**]
+
+--
+
+- instead of negative binomial
+- Poisson: $y_i \sim Poisson(exp(L_i))$
+- lognormal Poisson: $y_i \sim Poisson(exp(L_i + \epsilon_i)), \ \epsilon \sim N(0, \sigma^2)$ 
+
+---
+# Fit model with MCMC
+```{r fit-ss-hmsc, eval=F}
+# nChains = 2
+# thin=c(5,10,100)
+# nParallel = max(round(parallel::detectCores()/2), nChains)
+# samples = 1000
+# transient=500*thin
+# verbose=500*thin
+# 
+# for (i in 1:3) {
+#         models[[i]] = sampleMcmc(
+#                 models[[i]],
+#                 thin = thin[i],
+#                 samples = samples,
+#                 transient = transient,
+#                 nChains = nChains,
+#                 verbose = verbose,
+#                 initPar = "fixed effects"
+#         )
+# }
+```
+
+---
+```{r hmsc-load-ss-model, echo=F}
+# files = fs::dir_ls(file.path(model.directory, "corvusmonedula"))
+# name_id = c(10,100,5)
+# for (i in seq_along(files)) {
+#   assign(x = paste0("models", name_id[i]),
+#          value = readRDS(
+#            files[i]
+#          ))
+# }
+# rm(files, name_id)
+# mpost1 = convertToCodaObject(
+#         models5[[1]], 
+#         spNamesNumbers = c(T,F), 
+#         covNamesNumbers = c(T,F)
+#         )
+# mpost2 = convertToCodaObject(
+#         models10[[1]], 
+#         spNamesNumbers = c(T,F), 
+#         covNamesNumbers = c(T,F)
+#         )
+# mpost3 = convertToCodaObject(
+#         models100[[1]], 
+#         spNamesNumbers = c(T,F), 
+#         covNamesNumbers = c(T,F)
+#         )
+```
+# thinning=5
+.scroll-output[
+```{r hmsc-ss-beta-plot1, fig.align="center", fig.height=9, fig.width=9, echo=F}
+# plot(mpost1$Beta)
+```
+]
+---
+# thinning=10
+.scroll-output[
+```{r hmsc-ss-beta-plot2, fig.align="center", fig.height=9, fig.width=9,echo=F}
+# plot(mpost2$Beta)
+```
+]
+---
+# thinning=100
+.scroll-output[
+```{r hmsc-ss-beta-plot3, fig.align="center", fig.height=9, fig.width=9,echo=F}
+# plot(mpost3$Beta)
+```
+]
+---
+# Other MCMC convergence metrics
+.blue[**Effective sample size**]
+```{r hmsc-ss-effective-sample-size, echo=F}
+# rm(mpost1, mpost2)
+# ess.beta = effectiveSize(mpost3$Beta)
+# temp = data.frame (ess=ess.beta)
+# vc_names_ess = names(ess.beta)
+# vc_names_ess %<>% 
+#   stringr::str_remove("^B\\[") %>% 
+#   stringr::str_remove(", Corvus monedula\\]")
+# rownames(temp) = vc_names_ess
+# temp %>% 
+#   kable(format="html") %>% 
+#   kable_minimal %>% 
+#   scroll_box(height = "200px", width = "800px")
+# rm(ess.beta, temp, vc_names_ess)
+```
+
+--
+
+.blue[**potential scale reduction factor**] 
+
+```{r hsmsc--ss-psrf, echo=F}
+# psrf.beta = gelman.diag(mpost3$Beta,
+#                         multivariate = FALSE)$psrf
+# vc_names_psrf = rownames(psrf.beta)
+# vc_names_psrf %<>% 
+#   stringr::str_remove("^B\\[") %>% 
+#   stringr::str_remove(", Corvus monedula\\]")
+# rownames(psrf.beta) = vc_names_psrf
+# psrf.beta %>% 
+#   as.data.frame %>% 
+#   kable(format="html") %>% 
+#   kable_minimal %>% 
+#   scroll_box(height="200px", width="800px")
+# rm(psrf.beta, vc_names_psrf)
+```
+---
+# Cross-Validation Performance 
+```{r hmsc-ss-predictive-performance, echo = F}
+
+# preds=computePredictedValues(models100[[1]], expected = FALSE)
+# MF=evaluateModelFit(hM=models100[[1]], predY=preds)
+# 
+# MF %>% 
+#   unlist %>% 
+#   as.data.frame() %>% 
+#   kable(format = "html") %>% 
+#   kable_minimal() %>% 
+#   scroll_box(height="300px",width="800px")
+```
+
+--
+
+.blue[**O**] - Occurrence, .blue[**C**] - Count
+
+--
+
+.blue[**SR**]: pseudo- $R^2$ based on squared spearman correlation  
+
+--
+
+.blue[**AUC**]: Area under Curve - higher = better   
+
+--
+
+.blue[**TjurR2**]: $\bar{\hat{y_i}}- \bar{\hat{y_j}}, \forall y_i = 1 \land  y_j = 0$
+---
+# Variance Partioining
+```{r hmsc-ss-design, echo=F}
+# groupnames = c("habitat", "climate")
+# group=c(1,1,1,1,1,2,2)
+# VP = computeVariancePartitioning(models100[[1]], 
+#                                  group=group,
+#                                  groupnames=groupnames)
+# VP$vals %>% 
+#   as.data.frame() %>% 
+#   kable(format="html") %>% 
+#   kable_minimal %>% 
+#   scroll_box(height="180px", width="800px")
+```
+---
+# Predictions 
+```{r hsmc-ss-prediction1, echo=F, results='hide'}
+# m=models100[[1]]
+# m$XData$hab %<>% factor()
+# Gradient=constructGradient(m,
+#                            focalVariable="clim", 
+#                            non.focalVariables = list(hab=1))
+# predY = predict(m, 
+#                 Gradient = Gradient, 
+#                 expected = TRUE)
+```
+
+```{r hsmc-ss-prediction1-plot, echo=F,fig.align="center", fig.height=8, fig.width=8, message=FALSE}
+# par(mfrow=c(1,1))
+# plotGradient(m, Gradient, pred = predY, measure = "Y", showData=T)
+```
+
+---
+
+# Spatial Prediction 
+
+```{r hmsc-ss-load-pred, echo=F}
+# library(abind)
+# predY = readRDS("../003_processed_data/hmsc_mcmc/corvusmonedula/prediction.RDS")
+# EpredY = apply(abind(predY,along = 3), c(1,2), mean)
+# EpredO = apply(
+#   abind(predY, along = 3),
+#   c(1, 2),
+#   FUN = function(a) {
+#     mean(a > 0)
+#   }
+# )
+# grid = read.csv(file.path(data.directory,
+#                           "grid_1000.csv"))
+# grid = droplevels(subset(grid, !(Habitat=="Ma")))
+# xy.grid = as.matrix(cbind(grid$x, grid$y))
+# mapData=data.frame(xy.grid, EpredY,EpredO)
+# names(mapData)=c("xCoordinates", "yCoordinates", "PredictedAbundance", "PredictedOccurence")
+# spC <- ggplot(data = mapData, 
+#               aes(x= xCoordinates, 
+#                   y= yCoordinates, 
+#                   color=PredictedAbundance)
+# ) +
+#   geom_point(size=2)
+# spO <- ggplot(data = mapData,
+#               aes(x = xCoordinates,
+#                   y = yCoordinates,
+#                   color = PredictedOccurence)) +
+#   geom_point(size = 2)
+```
+
+```{r hmsc-ss-pred-fig1, fig.align="center", echo=F, fig.height=8, fig.width=8}
+# spO + 
+#   ggtitle("Predicted Corvus monedula occurrence") +
+#   xlab("East coordinate (km)") + 
+#   ylab("North coordinate (km)") + 
+#   scale_color_gradient(low = "blue", 
+#                        high="red", 
+#                        name ="Occurrence probability")
+```
+
+---
+# Spatial Prediction 
+```{r hmsc-ss-pred-fig2, fig.align="center", echo=F,fig.height=8, fig.width=8}
+# spC + 
+#   ggtitle("Predicted Corvus monedula abundance") +
+#   xlab("East coordinate (km)") + 
+#   ylab("North coordinate (km)") + 
+#   scale_color_gradient(low = "blue", 
+#                        high="red", 
+#                        name ="Abundance")
+```
+
+---
+
+# Joint Species Distribution Modeling with HMSC 
+
+```{r hmsc-jsdm-setup, messsage=F}
+# setup ----
+# working directory 
+setwd(here())
+# directories 
+dir_data = "001_raw_data/hmsc_birds/data/"
+dir_model = "003_processed_data/hmsc_mcmc/jsdm"
+# setup ----
+dt_y = fread(file.path(dir_data, "data.csv"))
+dt_x = dt_y[,c(5,6,7,8,9)]
+# load phylogenetic data  
+ph_phylo <- ape::read.tree(file.path(dir_data, "CTree.tre"))
+# load traits  
+dt_traits = fread(file.path(dir_data, "traits.csv")) 
+dt_traits$LogMass = log(dt_traits$Mass)
+```
+
+---
+
+# Phylogenetic data
+```{r phylo-data, fig.align="center"}
+ph_phylo
+```
+
+---
+# Phylogenetic data
+
+```{r hmsc-jsdm-phylo-plot, echo=F, fig.align="center"}
+ggtree(ph_phylo, branch.length="none", layout="circular") +
+  geom_tiplab(align=TRUE, linesize=.5)
+```
+
+---
+# Traits
+```{r hmsc-jsdm-traits, echo=F}
+dt_traits %>% 
+  head() %>% 
+  kable(format="html") %>% 
+  kable_minimal() %>% 
+  scroll_box(width="800px")
+```
+
+---
+# Subset to common species 
+```{r hmsc-jsdm-common-species}
+vc_subset = sort(colSums(dt_y[,10:59]), decreasing = TRUE)
+vc_subset = names(vc_subset)[1:9]
+vc_subset = append(vc_subset, "Corvus_monedula")
+vc_subset = which(names(dt_y) %in% vc_subset)
+
+dt_y=dt_y[,append(1:9, vc_subset), with = F]
+ma_y=as.matrix(dt_y[,10:19])
+# reduce trait data to selected species
+dt_traits = dt_traits[Species %in% colnames(dt_y)]
+```
+
+---
+# Study Design 
+```{r hmsc-jsdm-study-design}
+ma_studydesign           = matrix(NA,nrow(ma_y),2) 
+ma_studydesign[,1]       = sprintf('Route_%.3d',dt_y$Route) 
+ma_studydesign[,2]       = sprintf('Year_%.3d',dt_y$Year)
+df_studydesign           = as.data.frame(ma_studydesign) 
+colnames(df_studydesign) = c("Route","Year") 
+df_studydesign[,1]       = as.factor(df_studydesign[,1]) 
+df_studydesign[,2]       = as.factor(df_studydesign[,2])
+```
+---
+# Study Design
+
+```{r hmsc-jsdm-study-design2, echo=F}
+df_studydesign %>% 
+  head() %>% 
+  kable(format="html") %>% 
+  kable_minimal() %>% 
+  scroll_box(width="800px")
+```
+---
+# Random Effect Structure 
+
+```{r}
+vc_routes  = levels(df_studydesign[,1]) 
+ma_xy      = matrix(0, 
+                    nrow = length(vc_routes), 
+                    ncol = 2)
+
+for (i in seq_along(vc_routes)){ 
+        rows       = df_studydesign[,1]==vc_routes[i] 
+        ma_xy[i,1] = mean(dt_y[rows,]$x) 
+        ma_xy[i,2] = mean(dt_y[rows,]$y)
+}
+
+colnames(ma_xy) = c("x","y") 
+ma_sRL = ma_xy 
+rownames(ma_sRL) = vc_routes 
+rL = HmscRandomLevel(sData=ma_sRL) 
+rL$nfMin = 5 
+rL$nfMax = 10
+```
+
+
+---
+# Defining the model 
+```{r}
+
+XFormula = ~ Habitat + poly(AprMay, degree = 2, raw = TRUE)
+TrFormula = ~Migration + LogMass
+
+m = Hmsc(Y = ma_y, 
+         XData = as.data.frame(dt_x), 
+         XFormula = XFormula, 
+         TrData = dt_traits, 
+         TrFormula = TrFormula, 
+         phyloTree = ph_phylo, 
+         distr = "lognormal poisson", 
+         studyDesign = df_studydesign, 
+         ranLevels = list(Route=rL))
+```
+---
+# MCMC convergence 
+
+```{r hmsc-jsdm-load-mcmc, echo=F}
+m_fit = readRDS("~/01_Uni/01_Lehre/05_MOD3-Lecture/003_processed_data/hmsc_mcmc/jsdm/model_5.RDS")
+mpost = convertToCodaObject(m_fit,
+                            spNamesNumbers = c(T, F),
+                            covNamesNumbers = c(T, F))
+```
+
+.scroll-output[
+```{r hmsc-jsdm-plot-mcmc, echo=F, fig.align="center", fig.width=8}
+plot(mpost$Beta)
+```
+]
+---
+.scroll-output[
+```{r hmsc-jsdm-plot-mcmc-gamma, echo=F, fig.align="center", fig.width=8}
+plot(mpost$Gamma)
+```
+]
+---
+.scroll-output[
+```{r hmsc-jsdm-plot-mcmc-sigma, echo=F, fig.align="center", fig.width=8}
+plot(mpost$Sigma)
+```
+]
+
+---
+# Effective Sample size
+```{r hmsc-jsdm-eff, echo=FALSE, fig.align="center"}
+es.beta = effectiveSize(mpost$Beta) 
+ge.beta = gelman.diag(mpost$Beta,multivariate=FALSE)$psrf
+es.gamma = effectiveSize(mpost$Gamma) 
+ge.gamma = gelman.diag(mpost$Gamma,multivariate=FALSE)$psrf
+
+es.rho = effectiveSize(mpost$Rho) 
+ge.rho = gelman.diag(mpost$Rho,multivariate=FALSE)$psrf 
+es.V = effectiveSize(mpost$V) 
+ge.V = gelman.diag(mpost$V,multivariate=FALSE)$psrf
+
+es.omega = effectiveSize(mpost$Omega[[1]])
+ge.omega = gelman.diag(mpost$Omega[[1]],multivariate=FALSE)$psrf
+mixing = list(
+        es.beta = es.beta,
+        ge.beta = ge.beta,
+        es.gamma = es.gamma,
+        ge.gamma = ge.gamma,
+        es.rho = es.rho,
+        ge.rho = ge.rho,
+        es.V = es.V,
+        ge.V = ge.V,
+        es.omega = es.omega,
+        ge.omega = ge.omega
+)
+par(mfrow=c(2,2))
+hist(mixing$es.beta)
+hist(mixing$ge.beta)
+hist(mixing$es.gamma)
+hist(mixing$ge.gamma)
+```
+---
+# Evaluate model fit 
+```{r hmsc-jsdm-model-fit-read,echo=F}
+predY = readRDS("~/01_Uni/01_Lehre/05_MOD3-Lecture/003_processed_data/hmsc_mcmc/jsdm/prediction.RDS")
+MF    = readRDS("~/01_Uni/01_Lehre/05_MOD3-Lecture/003_processed_data/hmsc_mcmc/jsdm/model_fit.RDS")
+```
+
 ---
 class: inverse, center, middle 
 # Copulas 
@@ -1176,7 +1823,7 @@ background-position: 50% 80%
 ---
 background-image: url("figures/gosh2020b_1.png")
 background-size: 700px
-background-position: 50% 80%
+background-position: 50% 50%
 
 # Tails associations 
 
@@ -1184,7 +1831,7 @@ background-position: 50% 80%
 ---
 background-image: url("figures/gosh2020b_2.png")
 background-size: 700px
-background-position: 50% 80%
+background-position: 50% 50%
 
 # Tails associations 
 
@@ -1193,7 +1840,7 @@ background-position: 50% 80%
 ---
 background-image: url("figures/popovic2019_1.png")
 background-size: 500px
-background-position: 60% 80%
+background-position: 75% 70%
 # Disentangaling species associations
 
 - Popovic *et al.* 2019 and ecoCopula package
@@ -1211,7 +1858,7 @@ background-position: 60% 80%
 
 --
 
-- $\Omega = \Sigma^{-1}
+- $\Omega = \Sigma^{-1}$
 
 --
 
@@ -1225,15 +1872,15 @@ background-position: 60% 80%
 .scroll-box-20[
 ```{r ecoCopula}
 # devtools::install_github("gordy2x/ecoCopula")
-library(ecoCopula)
-gcgm_obj_0 <- cgr(tas.nb,lambda=0)
-plot(gcgm_obj_0)
-gcgm_obj_1 <- cgr(tas.nb,lambda=.1)
-plot(gcgm_obj_1)
-gcgm_obj_2 <- cgr(tas.nb,lambda=.2)
-plot(gcgm_obj_2)
-gcgm_obj_3 <- cgr(tas.nb,lambda=seq(from = 0, to = 0.2,by = 0.01))
-plot(gcgm_obj_3)
+# library(ecoCopula)
+# gcgm_obj_0 <- cgr(tas.nb,lambda=0)
+# plot(gcgm_obj_0)
+# gcgm_obj_1 <- cgr(tas.nb,lambda=.1)
+# plot(gcgm_obj_1)
+# gcgm_obj_2 <- cgr(tas.nb,lambda=.2)
+# plot(gcgm_obj_2)
+# gcgm_obj_3 <- cgr(tas.nb,lambda=seq(from = 0, to = 0.2,by = 0.01))
+# plot(gcgm_obj_3)
 
 
 ```

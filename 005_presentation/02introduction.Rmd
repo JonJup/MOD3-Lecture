@@ -1,0 +1,377 @@
+
+
+class: inverse, center, middle 
+
+# What’s new in multivariate analysis?
+
+---
+
+.pull-left[
+  .blockquote[
+    ### `r fa("comment-dots")` Question
+    What does multivariate mean? 
+  ]
+]
+
+--
+
+.pull-right[
+`r fa("list-ol")` `r fa("list-ol", color = "white") ` multi-response   
+`r fa("expand")` `r fa("list-ol", color = "white") ` **Y** is a matrix not a vector  
+`r fa("fish")` `r fa("list-ol", color = "white") ` e.g. many taxa
+]
+
+--
+
+.pull-left[
+  .blockquote[
+    ### `r fa("comment-dots")` Question
+    What methods do you know?
+  ]
+]
+
+--
+
+.pull-right[
+  `r fa("hand-point-right")``r fa("map-marker", color = "white")` PCA, RDA, CA, CCA   
+  `r fa("hand-point-right")``r fa("map-marker", color = "white")` Random Forests, Clustering    
+  `r fa("hand-point-right")``r fa("map-marker", color = "white")` PERMANOVA     
+]
+
+--
+
+.pull-left[
+  .blockquote[
+    ### `r fa("comment-dots")` Question
+    Why multivariate methods? 
+  ]
+]
+
+--
+
+.pull-right[
+`r fa("arrows-alt")` `r fa("arrows-alt", color = "white")` responses covary   
+`r fa("dumbbell")` `r fa("arrows-alt", color = "white")` borrowing strength
+]
+
+---
+
+# What does it look like in R? 
+
+
+```{r load vegan, results='hide', echo = T, message = F}
+library(vegan)
+data(dune)
+data(dune.env)
+rda_object <- rda(dune ~ ., dune.env)
+```
+
+--
+
+```{r plot-rda, fig.width = 5.5, fig.height = 5.5}
+plot(rda_object)
+```
+
+
+
+
+---
+
+# Common ground? 
+
+--
+
+`r fa("ruler-combined")` `r fa("ruler", color = "white")` They are based on .blue[**distance metrics**].  
+
+--
+
+`r fa("ruler-combined")` `r fa("ruler", color = "white")` Jaccard, Soerensen, Dice, Manhattan, Bray-Curtis, Canberra, ... 
+
+--
+
+`r fa("ruler-combined")` `r fa("ruler", color = "white")` How different are two sites in terms of their community composition.   
+
+--
+
+.pull-left[
+.content-box-blue[**fixed distance**]
+- PCA and RDA: Euclidean 
+- CA and CCA: $\chi^2$-distance
+]
+
+--
+
+.pull-right[
+.content-box-blue[**flexible distances    **]
+
+- NMDS 
+- dbRDA
+]
+
+--
+
+.blockquote[
+  ### `r fa("comment-dots")` Question
+  How does this differ form univariate analysis?
+]
+
+---
+
+# Models! 
+
+In univariate analyses we mostly use models:
+
+--
+
+- linear model 
+
+--
+
+- linear mixed model 
+
+--
+
+- generalized linear model 
+
+--
+
+- generalized additive models 
+
+--
+
+.blockquote[
+  ### `r fa("comment-dots")` Question
+  Why not in multivariate analyses?
+]
+
+---
+class: middle, center
+
+```{r old-pc-gif,fig.width=8, fig.height=8}
+knitr::include_graphics("figures/old_pc.gif")
+```
+
+---
+
+# What is the model-based approach? 
+
+`r fa("book")``r fa("cog", color = "white")` model-based approaches assume a parametric generative model
+
+--
+
+`r fa("hand-rock")``r fa("cog", color = "white")` model-based vs. distance-based 
+
+--
+
+.blue[**Terms are not consistent**]:  
+`r fa("hand-rock")``r fa("cog", color = "white")` Roberts (2019) and Warton *et al.* (2012) disagree about CA
+
+--
+
+`r fa("file-invoice-dollar")``r fa("cog", color = "white")` Alternative name: algorithm-based (Warton *et al.* 2015)  
+
+--
+
+<blockquote>
+Our constrained ordination model [...] 
+.right[-- <cite>Brittain *et al.* (2020)</cite>]
+</blockquote>
+
+--
+
+<blockquote>
+Many biologist fit CCA models [...] 
+.right[-- <cite>Yee (2004) </cite>]
+</blockquote>
+
+
+---
+
+# mean-variance relationship
+
+.content-box-blue[Ordinary Linear Regression]  
+
+\begin{align}
+y_i &= \alpha + \beta x_i + \epsilon_i \\
+y_i &\sim N(\mu = \alpha + \beta x_i, \sigma^2) \\
+\epsilon_i &\sim N(\mu = 0, \sigma^2) \\
+\end{align}
+
+--
+
+The variance does not change with the mean! 
+
+--
+
+.content-box-blue[Poisson GLM] 
+
+\begin{align}
+L_i &= \alpha + \beta x_i + \epsilon_i \\
+y_i &\sim Poisson(\lambda = exp(L_i)) \\
+\end{align}
+
+--
+
+$$\lambda = \mu = \sigma = np$$
+
+--
+
+The variance and the mean are the same `r fa("arrow-right")`
+
+--
+
+The variance increases linearly with the mean. 
+
+---
+
+background-image: url("figures/glm_error.png")
+background-size: 550px
+background-position: 50% 70%
+        
+# mean-variance relationship
+        
+---
+
+background-image: url("figures/WWW12_4.png")
+background-size: 550px
+background-position: 50% 70%
+
+.footnote[Warton *et al.* (2012)]
+
+# mean-variance of abundance data 
+
+---
+
+# mean-variance of binary data
+
+```{r example-binomial-mean-var}
+var_list = list()
+loop_probability = seq(from = 0, to = 1, length.out = 100)
+for (i in seq_along(loop_probability)) {
+  var_list[i] = var(rbinom(n = 1e4, size = 100, prob = loop_probability[i]))
+}
+plot_data = data.frame(variance = unlist(var_list), 
+                       probability = loop_probability)
+plot_data %>% 
+  ggplot(aes(x = probability, y = variance)) + 
+  geom_line() + 
+  ggtitle("Mean-Variance of Binomial Data")
+```
+
+---
+
+# mean-variance relationship
+
+Distance metric assume a mean-variance relationship
+
+--
+
+.content-box-blue[Euclidean Distance] 
+
+--
+
+$$d_{ij} = \sqrt{\sum_{s=1}^S (y_{is} - y_{js})^2}$$
+
+--
+
+The difference is not weight by the absolute values `r fa("arrow-right")`
+
+--
+
+Assumes a constant variance.
+
+--
+
+.content-box-blue[Canberra distance] 
+
+$$d_{ij} = \sum_{s=1}^S \frac{|y_{is} - y_{js}|}{(y_{is} - y_{js})}$$
+--
+
+Straight line relationship
+
+---
+
+background-image: url("figures/WWW12_1_1.png")
+background-size: 900px
+background-position: 50% 50%
+        
+# Are models better? 
+        
+.footnote[Warton *et al.* (2012)]
+
+---
+
+count: false
+
+background-image: url("figures/WWW12_1_2.png")
+background-size: 900px
+background-position: 50% 50%
+        
+# Are models better? 
+        
+.footnote[Warton *et al.* (2012)]
+
+---
+
+count: false
+
+background-image: url("figures/WWW12_1.png")
+background-size: 900px
+background-position: 50% 50%
+        
+# Are models better? 
+        
+.footnote[Warton *et al.* (2012)]
+---
+
+background-image: url("figures/WWW12_2.png")
+background-size: 600px
+background-position: 50% 75%
+        
+# Are models better? 
+      
+.footnote[Warton *et al.* (2012)]
+
+---
+
+background-image: url("figures/WWW12_3.png")
+background-size: 600px
+background-position: 50% 75%
+        
+# Are models better? 
+        
+.footnote[Warton *et al.* (2012)]
+
+---
+
+background-image: url("figures/szöcs15_1.png")
+background-size: 800px
+background-position: 50% 50%
+        
+# Are models better? 
+        
+.footnote[Szöcs *et al.* (2015)]
+
+---
+
+background-image: url("figures/jupke20_1.png")
+background-size: 800px
+background-position: 50% 50%
+        
+# Are models better? 
+        
+.footnote[Jupke & Schäfer (2020)]
+
+
+---
+# Conclusion: What's new 
+
+- classical approaches use distances as heuristic
+
+--
+
+- advances in statistics and computer power enable us to use multivariate models
+
+--
+
+- some models perform better in comparisons but it depends on data, question, and specific methods

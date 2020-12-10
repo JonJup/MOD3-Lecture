@@ -60,7 +60,7 @@ To specify the margin of the first title h1
 
 /* Change default inverse background colour */
 .inverse {
-  background-color: #0148A4;
+  background-color: #0fb1e0;
   text-shadow: 0 0 20px #333;
 }
 .inverse .remark-slide-number {
@@ -344,12 +344,12 @@ slides > slide {
 /* Title slide */
 /* Add image and change bg color
 .title-slide {
-  background-image: url(USydLogo-black.svg), url("title-image.jpg");
+  background-image: url(figures/logo.jpg), url("title-image.jpg");
   /* background-image: url(https://sydney.edu.au/etc/designs/corporate-commons/bower_components/corporate-frontend/dist/assets/img/USydLogo.svg); */
   /*
   background-position: 10% 90%, 100% 50%;
   background-size: 160px, 50% 100%;
-  background-color: #e64626;
+  background-color: #0fb1e0;
   /*padding-left: 100px;   delete this for 4:3 aspect ratio */
 /*
 }
@@ -360,7 +360,7 @@ slides > slide {
   /* background-image: url(https://sydney.edu.au/etc/designs/corporate-commons/bower_components/corporate-frontend/dist/assets/img/USydLogo.svg); */
   background-position: 10% 90%;
   background-size: 160px;
-  background-color: #e64626;
+  background-color: #0fb1e0;
   text-align:left;
   vertical-align: top;
   text-shadow: none;

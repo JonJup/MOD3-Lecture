@@ -1,0 +1,103 @@
+---
+title: "Advances in the analysis of multivariate ecological data"
+subtitle: "MOD3: Advanced data science"
+author: "Jonathan Jupke"
+institute: "University of Koblenz-Landau"
+date: "2021/01/07"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "libs/sydney.css", "libs/sydney-fonts.css"]
+    nature:
+      countIncrementalSlides: false
+      navigation:
+        scroll: false # disable slide transitions by scrolling
+
+---
+```{css, echo = FALSE}
+.remark-code { font-family: 'Source Code Pro', 'Lucida Console', Monaco, monospace;
+                                    font-size: 100%;
+                                  }
+}
+```
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(cache = FALSE,fig.pos = 'H',fig_cap=TRUE, echo=F, fig.align="center", message = FALSE,  warning=FALSE)
+library(rgl)
+knitr::knit_hooks$set(webgl = hook_webgl)
+pacman::p_load(corrplot, 
+               data.table,
+               dplyr, 
+               here,
+               Hmsc,
+               icon,
+               ggplot2,
+               ggtree,
+               kableExtra, 
+               knitr,
+               magrittr,
+               readxl,
+               tmap, 
+               sf,
+               stringr,
+               UncertainOrd,
+               vioplot)
+tmap_mode("view")
+
+source("../002_r_scripts/hmsc_my_plotbeta.R")
+source("../002_r_scripts/cqo/cqo_residual_plot.R")
+
+```
+
+For these slides and additional material see [here](https://jonjup.netlify.app/post/).
+
+---
+
+# Plan for today 
+
+1. What’s new in multivariate analysis?
+
+2. mvabund
+
+3. Vector GLM/GAM
+
+4. Latent Variable Models 
+
+5. Hierarchical Modeling of Species Communities
+
+6. Copulas 
+
+---
+
+```{r child='02introduction.RMD', eval=T}
+```
+
+---
+
+```{r child='03mvabund.RMD', eval=T}
+```
+
+---
+
+```{r child='04cqo.RMD', eval=T}
+```
+
+---
+
+```{r child='05gllvm.RMD', eval=T}
+```
+
+---
+
+```{r child='06hmsc.RMD', eval=T}
+```
+
+---
+
+```{r child='07copula.RMD', eval=T}
+```
+
+
+
+

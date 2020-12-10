@@ -1,4 +1,4 @@
-## JAGS model written for boral version 1.9 on 2020-10-21 10:29:26 ##
+## JAGS model written for boral version 1.9 on 2020-12-05 13:56:38 ##
 
  model {
 	 ## Data Level ## 
@@ -12,7 +12,10 @@
 	 for(i in 1:n) { for(k in 1:num.lv) { lvs[i,k] ~ dnorm(0,1) } } 
 
 	 ## Process level and priors ##
-	 for(j in 1:p) { lv.coefs[j,1] ~ dnorm(0,0.1) } ## Separate species intercepts
+	 for(j in 1:p) { lv.coefs[j,1] ~ dnorm(traits.int[1] + inprod(traits[j,],traits.coefs[1,1:num.traits]),pow(trait.sigma[1],-2)) } ## Species intercepts regressed against traits
+	 traits.int[1] ~ dnorm(0,0.1)
+	 traits.coefs[1,1] ~ dnorm(0,0.1) ## Traits used for intercept
+	 trait.sigma[1] ~ dunif(0,30)
 
 	 for(i in 1:(num.lv-1)) { for(j in (i+2):(num.lv+1)) { lv.coefs[i,j] <- 0 } } ## Constraints to 0 on upper diagonal
 	 for(i in 1:num.lv) { lv.coefs[i,i+1] ~ dnorm(0,0.1)I(0,) } ## Sign constraints on diagonal elements
@@ -20,12 +23,46 @@
 	 for(i in (num.lv+1):p) { for(j in 2:(num.lv+1)) { lv.coefs[i,j] ~ dnorm(0,0.1) } } ## All other elements
 
 
-	 for(j in 1:p) { X.coefs[j,1] ~ dnorm(0,0.1) } 
-	 for(j in 1:p) { X.coefs[j,2] ~ dnorm(0,0.1) } 
-	 for(j in 1:p) { X.coefs[j,3] ~ dnorm(0,0.1) } 
-	 for(j in 1:p) { X.coefs[j,4] ~ dnorm(0,0.1) } 
-	 for(j in 1:p) { X.coefs[j,5] ~ dnorm(0,0.1) } 
-	 for(j in 1:p) { X.coefs[j,6] ~ dnorm(0,0.1) } 
+	 for(j in 1:p) { X.coefs[j,1] ~ dnorm(traits.int[2] + inprod(traits[j,],traits.coefs[2,1:num.traits]),pow(trait.sigma[2],-2)) } 
+	 traits.int[2] ~ dnorm(0,0.1)
+	 traits.coefs[2,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[2] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,2] ~ dnorm(traits.int[3] + inprod(traits[j,],traits.coefs[3,1:num.traits]),pow(trait.sigma[3],-2)) } 
+	 traits.int[3] ~ dnorm(0,0.1)
+	 traits.coefs[3,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[3] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,3] ~ dnorm(traits.int[4] + inprod(traits[j,],traits.coefs[4,1:num.traits]),pow(trait.sigma[4],-2)) } 
+	 traits.int[4] ~ dnorm(0,0.1)
+	 traits.coefs[4,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[4] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,4] ~ dnorm(traits.int[5] + inprod(traits[j,],traits.coefs[5,1:num.traits]),pow(trait.sigma[5],-2)) } 
+	 traits.int[5] ~ dnorm(0,0.1)
+	 traits.coefs[5,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[5] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,5] ~ dnorm(traits.int[6] + inprod(traits[j,],traits.coefs[6,1:num.traits]),pow(trait.sigma[6],-2)) } 
+	 traits.int[6] ~ dnorm(0,0.1)
+	 traits.coefs[6,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[6] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,6] ~ dnorm(traits.int[7] + inprod(traits[j,],traits.coefs[7,1:num.traits]),pow(trait.sigma[7],-2)) } 
+	 traits.int[7] ~ dnorm(0,0.1)
+	 traits.coefs[7,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[7] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,7] ~ dnorm(traits.int[8] + inprod(traits[j,],traits.coefs[8,1:num.traits]),pow(trait.sigma[8],-2)) } 
+	 traits.int[8] ~ dnorm(0,0.1)
+	 traits.coefs[8,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[8] ~ dunif(0,30)
+
+	 for(j in 1:p) { X.coefs[j,8] ~ dnorm(traits.int[9] + inprod(traits[j,],traits.coefs[9,1:num.traits]),pow(trait.sigma[9],-2)) } 
+	 traits.int[9] ~ dnorm(0,0.1)
+	 traits.coefs[9,1] ~ dnorm(0,0.1) ## Traits used for this X.coefs
+	 trait.sigma[9] ~ dunif(0,30)
+
 
 	 for(j in 1:p) { lv.coefs[j,num.lv+2] ~ dunif(0,30) } ## Dispersion parameters
 

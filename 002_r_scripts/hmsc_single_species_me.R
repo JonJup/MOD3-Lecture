@@ -11,10 +11,10 @@
 
 
 # setup -------------------------------------------------------------------
-pacman::p_load(data.table, here, Hmsc, magrittr)
+pacman::p_load(abind, data.table, ggplot2, here, Hmsc, magrittr)
 setwd(here())
 
-data.directory="001_raw_data/hmsc_birds/data/"
+data.directory="001_raw_data/hmsc_birds/data"
 model.path="003_processed_data/hmsc_mcmc/corvusmonedula/"
 
 # load data ---------------------------------------------------------------
@@ -75,19 +75,17 @@ for (i in 1:1) {
 }
 
 #saveRDS(models, "003_processed_data/hmsc_mcmc/corvusmonedula/temp_models.RDS")
-saveRDS(models, file.path(model.path,"temp_models_100.RDS"))
-saveRDS(models, file.path(model.path, "temp_models_10.RDS"))
+# saveRDS(models, file.path(model.path,"temp_models_100.RDS"))
+# saveRDS(models, file.path(model.path, "temp_models_10.RDS"))
 models_1=readRDS(file.path(model.path,"temp_models.RDS"))
 models_10=readRDS(file.path(model.path,"temp_models_10.RDS"))
-
+models_100=readRDS(file.path(model.path, "hmsc_cm_models100.RDS"))
 
 # In spNamesNumbers we decide weather to to name species by Names(T) or
 # Numbers(F). Same for covariables in covNamesNumbers.
-mpost = convertToCodaObject(
-        models[[1]], 
-        spNamesNumbers = c(T,F), 
-        covNamesNumbers = c(T,F)
-        )
+mpost = convertToCodaObject(models_100[[1]],
+                            spNamesNumbers = c(T, F),
+                            covNamesNumbers = c(T, F))
 
 plot(mpost$Beta)
 
@@ -111,7 +109,7 @@ for (i in 1:3){
         MF[[i]] = evaluateModelFit(hM = models[[i]], predY = preds)
 }
 round(head(models[[1]]$X),2)
-groupnames = c(“habitat”, “climate”)
+groupnames = c("habitat", "climate")
 group = c(1,1,1,1,1,2,2)
 VP = list()
 for (i in 1:2){
@@ -123,20 +121,20 @@ round(summary(mpost$Beta, quantiles = c(0.025, 0.5, 0.975))
 
 # prediction  -------------------------------------------------------------
 
-m = models[[1]]
+m = models_100[[1]]
 par(mfrow = c(1,2))
-Gradient = constructGradient(m, focalVariable = “clim”,
+Gradient = constructGradient(m, focalVariable = "clim",
                              non.focalVariables = list(hab = 1))
 predY = predict(m, Gradient = Gradient, expected = TRUE)
-plotGradient(m, Gradient, pred = predY, measure = “Y”,
+plotGradient(m, Gradient, pred = predY, measure = "Y",
              index = 1,showData = TRUE)
-Gradient = constructGradient(m, focalVariable = “clim”,
+Gradient = constructGradient(m, focalVariable = "clim",
                              non.focalVariables = list(hab = 2))
 mpost = convertToCodaObject(models[[3]])
 round(summary(mpost$Alpha[[1]], quantiles = c(0.025, 0.5,
                                               0.975))[[2]], 2)
 partition = createPartition(models[[1]], nfolds = 2,
-                            column = “route”)
+                            column = "route")
 MF = list()
 for (i in 1:3){
         preds = computePredictedValues(models[[i]],
@@ -144,10 +142,12 @@ for (i in 1:3){
         MF[[i]] = evaluateModelFit(hM = models[[i]], predY = preds)
 }
 
-m = models[[1]]
+# predict on grid 
+
+m = models_100[[1]]
 grid = read.csv(file.path(data.directory,
-                          “bird data\\grid_10000.csv”))
-grid = droplevels(subset(grid, !(Habitat==“Ma”)))
+                          "grid_10000.csv"))
+grid = droplevels(subset(grid, !(Habitat=="Ma")))
 xy.grid = as.matrix(cbind(grid$x, grid$y))
 XData.grid = data.frame(hab = grid$Habitat,
                         clim = grid$AprMay)
@@ -157,3 +157,34 @@ predY = predict(m, Gradient = Gradient)
 EpredY = apply(abind(predY,along = 3), c(1,2), mean)
 EpredO = apply(abind(predY,along = 3), c(1,2), FUN =
                        function(a) {mean(a > 0)})
+rowSums(predY)
+mapData=data.frame(xy.grid, EpredY,EpredO)
+names(mapData)=c("xCoordinates", "yCoordinates", "PredictedAbundance", "PredictedOccurence")
+spO <- ggplot(data = mapData, 
+             aes(x= xCoordinates, 
+                 y= yCoordinates, 
+                 color=PredictedOccurence)
+             ) +
+  geom_point(size=2)
+spC <- ggplot(data = mapData, 
+              aes(x= xCoordinates, 
+                  y= yCoordinates, 
+                  color=PredictedAbundance)
+) +
+  geom_point(size=2)
+
+spO + 
+  ggtitle("Predicted Corvus monedula occurrence") +
+  xlab("East coordinate (km)") + 
+  ylab("North coordinate (km)") + 
+  scale_color_gradient(low = "blue", 
+                       high="red", 
+                       name ="Occurrence probability")
+spC + 
+  ggtitle("Predicted Corvus monedula abundance") +
+  xlab("East coordinate (km)") + 
+  ylab("North coordinate (km)") + 
+  scale_color_gradient(low = "blue", 
+                       high="red", 
+                       name ="Abundance")
+                                                                                                                                             "blue", high = "red", name = "Occurrence probability")

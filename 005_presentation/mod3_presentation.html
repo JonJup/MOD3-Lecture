@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="author" content="Jonathan Jupke" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/font-awesome/css/fontawesome-all.min.css" rel="stylesheet" />
     <script src="libs/kePrint/kePrint.js"></script>
     <link href="libs/lightable/lightable.css" rel="stylesheet" />
     <link rel="stylesheet" href="libs/sydney.css" type="text/css" />
@@ -32,7 +33,6 @@ class: center, middle, inverse, title-slide
 
 
 
-
 ```r
 #TODO Abstand zwischen Bullets
 #TODO Abstand zwischen Bullets
@@ -40,13 +40,8 @@ class: center, middle, inverse, title-slide
 #TODO adjust images 
 #TODO Latent variable intro slide 
 ```
-
+For these slides and additional material see [here](https://jonjup.netlify.app/post/)
 ---
-
-
-&lt;!--TODO --&gt;  
-&lt;!--# TODO serial slide--&gt;   
-&lt;!--# TODO bullet color--&gt;  
 
 # Plan for today 
 
@@ -75,112 +70,171 @@ class: inverse, center, middle
 # ... well first, what's old? 
 
 --
+.pull-left[
+  .blockquote[
+    ### <i class="fas  fa-comment-dots "></i> Question
+    What does multivariate mean? 
+  ]
+]
 
-brainstrom : What Methods do you know? 
+.pull-right[
+  .blockquote[
+    ### <i class="fas  fa-comment-dots "></i> Question
+    What methods do you know?
+  ]
+]
 
 --
 
-- PCA
-- RDA
-- PERMANOVA
-- CA/ CCA
-- Random Forests 
-- Clustering Methods 
+.pull-left[
+- multi-response   
+- **Y** is a matrix not a vector
+]
+
+--
+
+.pull-right[
+- PCA  
+- RDA  
+- PERMANOVA  
+- CA/ CCA  
+- Random Forests   
+- Clustering Methods   
+]
+
 
 ---
-# Bi/Triplot
+
+# What does it look like in R? 
 
 
 ```r
-library(vegan)
-data(dune)
-data(dune.env)
-rda_object &lt;- rda(dune ~ ., dune.env)
+# library(vegan)
+# data(dune)
+# data(dune.env)
+# rda_object &lt;- rda(dune ~ ., dune.env)
 ```
 
 ---
 # Bi/Triplot
 
+
+
 ```r
-plot(rda_object)
+# plot(rda_object)
 ```
 
-&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
-
 ---
-# What do most ordinations have in common? 
+# Common ground? 
 
 --
 
-They are based on some notion of a distance metric
+They are based on some notion of a .blue[**distance metric**].  
 
 --
 
-## fixed
+.pull-left[
+.blue[**fixed**]
 
 - PCA and RDA: Euclidean 
 - CA and CCA: `\(\chi^2\)`-distance
+]
 
 --
 
-## flexible
+.pull-right[
+.blue[**flexible**]
 
 - NMDS 
 - PCoA
 - dbRDA
-
----
-
-# How does that differ from the univerate and why? 
+]
 
 --
 
+.blockquote[
+  ### <i class="fas  fa-comment-dots "></i> Question
+  How does this differ form univariate analysis?
+]
+---
+
+
+
+# Models! 
+
 In univariate analyses we mostly use models:
+
+--
+
 - linear model 
+
+--
+
 - linear mixed model 
+
+--
+
 - generalized linear model 
+
+--
+
 - generalized additive models 
 
 --
 
-`\(\rightarrow\)` .blue[**why not in multivariate analyses?**]
+<i class="fas  fa-question-circle "></i> why not in multivariate analyses?
 
 ---
 class: middle, center
 
-&lt;img src="old_pc.gif" style="display: block; margin: auto;" /&gt;
+
 
 ---
 # Notation 
-`\(s=1,...,S\)` species   
-`\(i=1,...,N\)` sites   
-`\(p=1,...,P\)` environmental variables   
-`\(r=1,...,R\)` latent variables   
----
 
+**Y** is a N `\(\times\)` S matrix of occurrences\ abundances with elements `\(y_{is}\)`  
+**X** is a N `\(\times\)` P matrix of environmental variables with elements `\(x_{ip}\)`   
+`\(\mathbf{\Lambda}\)` is a R `\(\times\)` S matrix of species loadings with elements `\(\lambda_{rs}\)`   
+`\(\mathbf{\Psi}\)` is a N `\(\times\)` R matrix of site loadings with elements `\(\psi_{ir}\)`    
+**T** is a S `\(\times\)` J matrix of species traits with elements `\(t_{sj}\)`   
+---
+.footnote[Gauch &amp; Whittaker (1972), Zuur et al. (2007)]
 # The idea is old 
 
 The Gaussian response model: 
-$$Y_i = c\ exp\bigg(- \frac{(X_i - u)^2}{2t^2}\bigg) $$
+$$Y_{si} = c_s\ exp\bigg(- \frac{(X_i - u_s)^2}{2t_s^2}\bigg) $$
 --
-Can be rewritten as a GLM:
-`$$Y_i = exp \bigg(ln(c) - \frac{u^2}{2t^2} + \frac{u}{t^2}x_i - \frac{1}{2t^2}x^2_i\bigg) = exp(b_1 + b_2 x_i + b_3 x_i^2)$$`
+
+.blue[c]: maximal abundance, .blue[u]: location of optima, .blue[t]: tolerance  
+
 --
-with 
-$$ t = \frac{1}{\sqrt{-2b_3}}; u = \frac{-b_2}{2b_3}; c =     exp \bigg(b_1 - \frac{b_2^2}{4b_3}\bigg)$$ 
+
+As GLM:
+`\begin{align}
+Y_{si} &amp;= exp \bigg(ln(c_s) - \frac{u_s^2}{2t_s^2} + \frac{u_s}{t_s^2}x_i - \frac{1}{2t_s^2}x^2_i\bigg)
+&amp;=exp(b_{1s} + b_{2s}\ x_i + b_{3s}\ x_i^2)
+\end{align}`
+
 --
-For .blue[S] species and .blue[P] environmental variables we would need: `\((1+2P)S\)` parameters.  
-For 10 species and 5 variables 110 parameters.  
+
+with  
+
+`$$t_s = \frac{1}{\sqrt{-2b_{3s}}}; u_s = \frac{-b_{2s}}{2b_{3s}}; c_s = exp \bigg(b_{1s} - \frac{b_{2s}^2}{4b_{3s}}\bigg)$$` 
 
 ---
 # Restricted Gaussian Regression 
 
-Gradients `\(z\)` as linear combinations of measured variables `\(x\)`:
-`$$z_r = \Sigma_{p =  1}^P \alpha_{rp} x_p$$`
+Uses `\((1+2P)S\)` parameters.  
+For 10 species and 5 variables 110 parameters.   
+
+--
+
+Gradients `\(\mathbf{\Psi}\)` as linear combinations of measured variables `\(x\)`:
+`$$\psi_r = \Sigma_{p =  1}^P \alpha_{rp}\ x_p$$`
 --
 
 Plug gradients back into Gaussian regression
-`$$Y_i = c\ exp\bigg(\frac{(z_ri - u_r)^2}{2t_r^2}\bigg)$$`
+`$$Y_{is} = c_s\ exp\bigg(\frac{(\psi_{ir} - u_{sr})^2}{2t_{sr}^2}\bigg)$$`
 
 If R `\(\ll\)` P, this reduces the number of parameters. 
 
@@ -192,7 +246,7 @@ Model-based approaches assume a parametric generative model
 --
 
 .blue[**Terms are not consistent**]:  
-Roberts (2019) and Warton *el al.* (2012) disagree about whether CA is distance-based
+Roberts (2019) and Warton *el al.* (2012) disagree about  CA
 
 --
 
@@ -227,7 +281,7 @@ background-position: 50% 70%
 
 ---
 background-image: url("figures/WWW12_1.png")
-background-size: 800px
+background-size: 700px
 background-position: 50% 50%
 
 # Are models better? 
@@ -237,7 +291,7 @@ Every distance metric assumes a mean-variance relationship
 .footnote[Warton *et al.* (2012)]
 ---
 background-image: url("figures/WWW12_2.png")
-background-size: 400px
+background-size: 500px
 background-position: 50% 75%
 
 # Are models better? 
@@ -247,7 +301,7 @@ Every distance metric assumes a mean-variance relationship
 .footnote[Warton *et al.* (2012)]
 ---
 background-image: url("figures/WWW12_3.png")
-background-size: 400px
+background-size: 500px
 background-position: 50% 75%
 
 # Are models better? 
@@ -283,8 +337,12 @@ R package published in 2012  (Wang et al. 2012)
 
 **M**ulti**v**ariate **Abund**ance data  
 
+--
+
 Multivariate
 - many, possibly correlated responses 
+
+--
 
 Abundance
 - strong mean-variance relationship 
@@ -295,26 +353,44 @@ We could use mixed models and model the taxon as a random effect.
 
 --
 
-`$$Abundace \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$`
+`$$Abundance \sim species\ + variable1\ + variable2\ + (0 + species|sample)$$`
 --
 
-1. `\(y_{ij}\)` are independand, conditional on mean  `\(\mu_{ij}\)`
-2. Conditional on `\(\mu_{ij}\)`, data come from a .blue[known distribution]  
-3. straight line relationship between some function `\(\mu_{ij}\)` and x, with error `\(\epsilon_{ij}\)`
+1. `\(y_{is}\)` are .blue[independent], conditional on mean  `\(\mu_{is}\)`
 
+--
 
-`$$g(\mu_{ij}) = \beta_0j + x^T_j \beta_j + \epsilon_{ij}$$`
-4. `\(\epsilon\)` are normally distributed. They introduce correlation between response within observatios. 
-`$$\epsilon_{ij} \sim MVN(0, \Sigma)$$`
+2. Conditional on `\(\mu_{is}\)`, data come from a .blue[known distribution]  
+
+--
+
+3. .blue[straight line relationship] between some function `\(\mu_{is}\)` and x, with error `\(\epsilon_{is}\)`
+
+`$$g(\mu_{is}) = \beta_{0s} + x^T_i \beta_s + \epsilon_{is}$$`
+--
+
+4. `\(\epsilon\)` are normally distributed. 
+`$$\epsilon_{is} \sim MVN(0, \Sigma)$$`
+--
+
+They introduce correlation between response within observations. 
+
 ---
 # Implementations in R
 
-- lme4 
-- MCMCglmm 
-- Purpose written code (e.g. Pollock et al 2014)
+- lme4 (Bates *et al*., 2015)
+- MCMCglmm (Hadfield, 2010)
+- purpose written code (e.g. Pollock *et al*. 2014)
+
+--
+
+.blockquote[
+  ### <i class="fas  fa-comment-dots "></i> Question
+  What is problematic with this approach?
+]
 
 ---
-# Whats the problem with this approach? 
+# Problem? Parameters! 
 
 |  # responses | # parameters in `\(\Sigma\)` |
 | :---- |:--- |
@@ -323,13 +399,33 @@ We could use mixed models and model the taxon as a random effect.
 | 20    | 210 |
 | 40    |  820 |
 
-- No convergence in ML GLMM  
-- long run time, not all parameters converge, and big influence of prior as `\(\frac{\# data}{\#parameters}\)` is small. 
-  
+--
+.pull-left[
+.blue[maximum likelihood]  
+- No convergence
+]
+
+--
+
+.pull-right[
+.blue[bayesian]  
+- long run time  
+- not all parameters converge  
+- big influence of prior
+]
+
 ---
 # Simplify
-mvabund uses design-based inference and assumes simple correlation structures.  
-This is fine if we are primarily interested in species environment relationships  
+
+Instead of estimating we can assume `\(\Sigma\)`.
+
+--
+
+mvabund uses design-based inference.  
+
+--
+
+Ok, if primary interest is species environment relationships  
 
 --
 Multivariate: row resampling for inference, preserves species correlations  
@@ -337,131 +433,122 @@ Abundance: separate GLM for each species
 ---
 # Test statistics  
 
-default: `\(\Sigma\ Likelihood\ Ratios\)`
+.content-box-blue[Sum of Likelihood Ratios]  
 `\begin{align}
 L &amp; = 2 \times (l_M - l_m)  \\
 L &amp;\sim \chi^2_{p_M - p_m} \\  
 \end{align}`
 
-This does not account for correlations in the statistic but in the pseudo-*p*-value.  
 --
-  
-  
-Alternatives:      
-  
-Wald statistic   
+
+Test statistic does not account for correlations but the *p* -value.  
+
+--
+   
+.content-box-blue[Wald statistic]  
 `\begin{align}
 W &amp;= \frac{(\beta_m - \beta_0)^2}{var(\beta_m)} \\
 z &amp;= \sqrt(W)
 \end{align}`
 
-Score statistic  
-see e.g. Dunn \&amp; Smyth (2018)
+--
+
+.content-box-blue[Score statistic]   
+see e.g. Dunn &amp; Smyth (2018)
 
 ---
 # Correlation options
   
-.blue["I"]: No correlation, default setting   
-.blue["R"]: Assumes correlation, cf. mixed model  
-.blue["shrink"]: middle option, shrinks correlation matrix to `\(I\)` with ridge regularization (Warton (2008))  
+.content-box-blue["I"]  
+No correlation, default setting  
+
+--
+
+.content-box-blue["R"]   
+estimates `\(\Sigma\)`, see mixed model 
+
+--
+
+.content-box-blue["shrink"]  
+middle option, shrinks correlation matrix to `\(I\)` with ridge regularization (Warton, 2008)  
   
-For R and shrink LR is not available. They are estimated with generalized estimation equations (Warton 2011) which do not produce likelihoods. 
+--
+  
+For .blue[R] and .blue[shrink] `\(\Sigma LR\)` is not available. They are estimated with generalized estimation equations (Warton, 2011) which do not produce likelihoods. 
 
 ---
 
 
 ```r
-library(mvabund)
-data("Tasmania")
-attach(Tasmania)
-head(copepods[,1:3])
+# library(mvabund)
+# data("Tasmania")
+# attach(Tasmania)
+# head(copepods[,1:3])
 ```
 
-```
-##      Ameira Adopsyllus Ectinosoma
-## B1D1     43          0          0
-## B1D2     63          0          0
-## B1U1    124          0          0
-## B1U2    105          0          2
-## B2D1      4          0          0
-## B2D2      5          0          0
-```
+--
+
 
 ```r
-tasmvabund &lt;- mvabund(copepods)
-class(tasmvabund)
+# tasmvabund &lt;- mvabund(copepods)
+# class(tasmvabund)
 ```
 
-```
-## [1] "mvabund" "matrix"
+---
+
+
+```r
+# plot(tasmvabund~treatment, col = as.numeric(block))
 ```
 ---
 
 ```r
-plot(tasmvabund~treatment, col = as.numeric(block))
-```
-
-```
-## 
-##  PIPING TO 2nd MVFACTOR
-```
-
-&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
----
-
-```r
-meanvar.plot(copepods~tr.block, col = as.numeric (treatment))
-```
-
-```
-## START SECTION 2 
-## Plotting if overlay is TRUE
-```
-
-&lt;img src="mod3_presentation_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
-
-```
-## FINISHED SECTION 2
+# meanvar.plot(copepods~tr.block, col = as.numeric (treatment))
 ```
 ---
 # Fitting a model 
 
 ```r
-tas.nb &lt;- manyglm(copepods ~ block*treatment, 
-                  family = "negative.binomial")
+# tas.nb &lt;- manyglm(copepods ~ block*treatment, 
+#                   family = "negative.binomial")
 ```
 
 
-`$$Y_{ij} \sim NB(\mu_{jkl}, \phi_j)$$`
-`$$log(\mu_{jkl}) = intercept_j + block_{jkl} + treatment_{jl} + block \times treatment_{jkl}$$`
+`$$Y_{is} \sim NB(\mu_{skl}, \phi_s)$$`
+`$$log(\mu_{jkl}) = intercept_s + block_{skl} + treatment_{sl} + block \times treatment_{skl}$$`
+with treatment level .blue[k] and block .blue[l]
+
 ---
 # Checking model assumptions 
 
 ```r
-plot.manyglm(tas.nb, which = 1)
+# plot.manyglm(tas.nb, which = 1)
 ```
 
-&lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 1-1.png" style="display: block; margin: auto;" /&gt;
 .footnote[Dunn &amp; Smyth (1996)]
+
 ---
+
 # Checking model assumptions
 
 ```r
-plot.manyglm(tas.nb, which = 2)
+# plot.manyglm(tas.nb, which = 2)
 ```
 
-&lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 2-1.png" style="display: block; margin: auto;" /&gt;
 .footnote[Dunn &amp; Smyth (1996)]
+
 ---
+
 # Checking model assumptions
 
 ```r
-plot.manyglm(tas.nb, which = 3)
+# plot.manyglm(tas.nb, which = 3)
 ```
 
-&lt;img src="mod3_presentation_files/figure-html/mvabund Checking model assumptions 3-1.png" style="display: block; margin: auto;" /&gt;
 .footnote[Dunn &amp; Smyth (1996)]
+
 ---
+
 # Testing Hypotheses
 
 
@@ -474,30 +561,17 @@ plot.manyglm(tas.nb, which = 3)
 # anova_out
 ```
 ]
+
 ---
 
-```r
-library(lattice)
-a &lt;- max(abs(coef(tas.nb)))
-colort &lt;- colorRampPalette(c("blue", "white", "red"))
-plot.tas &lt;- levelplot(t(as.matrix(coef(tas.nb))), ylab = "", xlab  = "", col.regions = colort(100), at=seq(-a,a,length = 100), scales = list( x= list(rot = 45)))
-print(plot.tas)
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
----
-
-```r
-tas_pred = predict(tas.nb, type = "response")
-matplot(t(tas_pred[c(1,3),]), type = "l", xaxt = "n", log = "y", ylab = "Mean abundance [log]")
-axis(1, at =1:12, labels = colnames(copepods), las = 3)
-legend("topright", legend = levels(treatment), col = 1:2, lty = 1:2)
-```
-
-![](mod3_presentation_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
 
 
 ---
+
+
+
+---
+
 # Traits 
 Not discussed in lecture. See here for introduction:  
 https://rpubs.com/dwarton/68823
@@ -510,37 +584,30 @@ class: inverse, center, middle
 # VGLMs
 .footnote[see Dobson &amp; Barnett (2018) for more on the exponential family]
 
-... are an extension of GLMs   
-GLMs are restricted to distributions from the .blue[exponential family].   
+... are an extension of GLMs 
+
+--
+
+- GLMs are restricted to distributions from the .blue[exponential family].   
 VGLMS are not.  
-VGLMs can have multiple linear predictors, for different parameters.  
-Explanatroy variables can differ between predictors.
----
-# The exponential family
-
-`$$f(x, \theta) = s(x)\ t(\theta)\ exp (a(y)\ b(\theta))$$`
---
-$$f(x, \theta) = exp(a(y)\ b(\theta) + c(\theta) + d(y)) $$
-with `\(c(\theta) = exp(t(\theta))\)` and `\(d(y) = exp(s(y))\)`
 
 --
 
-.blue[Poisson]
-`\begin{align}
-f(x,\lambda) &amp;= \frac{\lambda^y e^{-\lambda}}{y!}\\
-\theta &amp;= \lambda\\
-f(x, \theta) &amp;= exp(log(\theta)\ y - \theta - log(y!))
-\end{align}`
+- VGLMs can have .blue[multiple linear predictors], for different parameters.
 
+--
+
+- Explanatory variables can differ between predictors.
 
 ---
+
 # Reduced Rank VGLM  
 
 Reduce the dimensions, i.e. number of predictors `\(P\)` by reduced rank regression   
 
 --
 
-Create latent variables `\(\nu\)` from subset of environmental variables `\(X\)`
+Create latent variables `\(\psi\)` from subset of environmental variables `\(x_2\)`
 
 --
 
@@ -548,10 +615,17 @@ Create latent variables `\(\nu\)` from subset of environmental variables `\(X\)`
 
 --
 `$$B_2 = A C^T$$` 
-`$$\nu = C^T x_2\ \ \ \ \ \ (site\ scores)$$`
-`$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu$$`
+`$$\psi = C^T x_2\ \ \ \ \ \ (site\ scores)$$`
 --
-`\(\rightarrow\)` Reduced Rank Regression is the same as RDA! 
+
+`\begin{align}
+\eta &amp;= B_1^T x_1 + A C^Tx_2 \\
+     &amp;= B_1^T x_1 + A \nu
+\end{align}`
+
+--
+
+<i class="fas  fa-exclamation-circle "></i> Reduced Rank Regression is the same as RDA! 
 
 
 ---
@@ -562,13 +636,14 @@ In ecology, unimodal responses are the norm (Oksanen &amp; Minchin, 2002)
 
 --
 
-quadratic linear predictor  
+`\begin{align}
+\eta &amp;= B_1^T x_1 + A \psi\  &amp; ordinary\ RR-VGLM \\
+     &amp;= \beta_{1(s)}^T  + \beta_{2(s)}\ \psi + \beta_{3(s)}\ \psi^2 &amp; quadratic\ RR-VGLM
+\end{align}`
 
 --
 
-`$$\eta = B_1^T x_1 + A C^Tx_2 = B_1^T x_1 + A \nu\ \ \ \ \ \ \ ordinary\ RR-VGLM$$`
-`$$\eta_s = \beta_{1(s)}^T  + \beta_{2(s)}\ \nu + \beta_{3(s)}\ \nu^2\ \ \ \ \ \ \ quadratic\ RR-VGLM$$`
-$$ log\ \mu_s(\nu) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\nu - u_s}{t_s} \bigg)^2 $$
+$$ log\ \mu_s(\psi) = \eta_s = \alpha_s - \frac{1}{2} \bigg( \frac{\psi - u_s}{t_s} \bigg)^2 $$
 
 
 ---
@@ -578,854 +653,161 @@ from ter Braak (1986)
 
 
 
-&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:700px; "&gt;&lt;table&gt;
- &lt;thead&gt;
-  &lt;tr&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; WaterCon &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; BareSand &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; FallTwig &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; CoveMoss &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; CoveHerb &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; ReflLux &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alopacce &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alopcune &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alopfabr &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Arctlute &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Arctperi &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Auloalbi &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardlugu &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardmont &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardnigr &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pardpull &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Trocterr &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Zoraspin &lt;/th&gt;
-  &lt;/tr&gt;
- &lt;/thead&gt;
-&lt;tbody&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.3321 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.4543 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.9120 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 60 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 57 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.0493 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5643 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.6094 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 30 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 37 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 65 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.5572 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.6052 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 29 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 45 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 66 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.6741 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.6151 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.9957 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 29 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 94 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 86 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.0155 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.6151 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3026 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 135 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 76 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 91 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.3810 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 27 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 63 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 34 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.1781 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.6151 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3026 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 30 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 89 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 105 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 118 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.6247 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.2627 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 55 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 30 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.4849 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.3307 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4012 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 26 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.1972 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.9318 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.2192 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.1109 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.7136 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 95 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.2925 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.8286 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.0254 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 96 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.5175 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5109 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4012 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 43 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 97 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.0865 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5643 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 94 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 32 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.2696 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.3944 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.0301 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.6052 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 28 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.3322 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.4543 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 23 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.1224 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.3944 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 25 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.9232 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5109 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.6094 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.6094 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.1091 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5951 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2.9755 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5643 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 1.2528 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.3307 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.6931 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.9120 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 1.1939 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.0254 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.0943 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 1.6487 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.2581 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.0254 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0445 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.0073 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 1.8245 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.5835 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.0986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.1109 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3026 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.9933 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.5109 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7918 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.3820 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.9555 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.3979 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.8286 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 29 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.9555 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.7136 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4340 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6889 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;&lt;/div&gt;
+
 ---
 # Rank-1 Poisson CQO
-.scroll-output[
+
 
 ```r
-set.seed(1234)
-hspider[, 1:6] &lt;- scale(hspider[, 1:6]) # Standardized environmental variables
-p1ut.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
-                     Arctlute, Arctperi, Auloalbi, 
-                     Pardlugu, Pardmont, Pardnigr, 
-                     Pardpull, Trocterr, Zoraspin) ~ 
-                 WaterCon + BareSand + FallTwig + CoveMoss + 
-                 CoveHerb + ReflLux,
-               family = poissonff, 
-               data = hspider, 
-               eq.toler = FALSE, 
-               trace = FALSE)
+# set.seed(1234)
+# hspider[, 1:6] &lt;- scale(hspider[, 1:6]) # Standardized environmental variables
+# p1ut.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
+#                      Arctlute, Arctperi, Auloalbi, 
+#                      Pardlugu, Pardmont, Pardnigr, 
+#                      Pardpull, Trocterr, Zoraspin) ~ 
+#                  WaterCon + BareSand + FallTwig + CoveMoss + 
+#                  CoveHerb + ReflLux,
+#                family = poissonff, 
+#                data = hspider, 
+#                eq.toler = FALSE, 
+#                trace = FALSE)
 ```
 
-```
-## cqo_1; no convergence for Species number   4. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-## cqo_1; no convergence for Species number   5. Trying internal starting values.
-```
-]
+
 
 
 ---
 # Latent Variable Plot 
 
-```r
-lvplot(p1ut.hs, y = TRUE, lcol = clr, pch = 1:S, pcol = clr)
-```
-
-&lt;img src="mod3_presentation_files/figure-html/cqo lvplot 1-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 # 2d Perspective Plot 
 
-```r
-persp(p1ut.hs, col = clr, label = TRUE) # Perspective plot
-```
-
-&lt;img src="mod3_presentation_files/figure-html/CQO persp plot-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 # Constrained Coefficients
 
 ```r
-concoef(p1ut.hs) %&gt;%  as.vector() %&gt;% round(2) -&gt; p1ut_coef
-names(p1ut_coef) &lt;- row.names(concoef(p1ut.hs))
-print(p1ut_coef)
-```
-
-```
-## WaterCon BareSand FallTwig CoveMoss CoveHerb  ReflLux 
-##     0.23    -0.51     0.60    -0.21     0.34    -0.80
+# concoef(p1ut.hs) %&gt;%  as.vector() %&gt;% round(2) -&gt; p1ut_coef
+# names(p1ut_coef) &lt;- row.names(concoef(p1ut.hs))
+# print(p1ut_coef)
 ```
 
 --
-.scroll-box-8[
+
 
 ```r
-Tol(p1ut.hs)[1, 1, ]
+# Tol(p1ut.hs)[1, 1, ]
 ```
 
-```
-##   Alopacce   Alopcune   Alopfabr   Arctlute   Arctperi   Auloalbi   Pardlugu 
-##  1.0000000  0.7215282  1.0990803  0.2244719  0.7099974  0.5174699 -2.4202413 
-##   Pardmont   Pardnigr   Pardpull   Trocterr   Zoraspin 
-##  0.8943600  0.2799506  0.3561246  0.8697751  0.5020176
-```
-]
 ---
+
 # Let's add a second gradient
-.small[
+
 
 ```r
-p2et.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi,Auloalbi, Pardlugu, Pardmont, Pardnigr, ... = Pardpull,Trocterr, Zoraspin)
-               ~ WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
-               poissonff, data = hspider, Crow1positive = FALSE, Rank = 2,
-               I.toler = TRUE, Bestof = 2)
+# p2et.hs &lt;- cqo(cbind(Alopacce, Alopcune, Alopfabr, 
+#                      Arctlute, Arctperi, Auloalbi, 
+#                      Pardlugu, Pardmont, Pardnigr,
+#                      Pardpull,Trocterr, Zoraspin) ~
+#                 WaterCon + BareSand + FallTwig + 
+#                  CoveMoss + CoveHerb + ReflLux,
+#                family = poissonff, 
+#                data = hspider, 
+#                Crow1positive = FALSE, 
+#                Rank = 2,
+#                I.toler = TRUE, 
+#                Bestof = 2)
 ```
 
-```
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-
-## Warning in fn(par, ...): error code in callcqoc = 3
-```
-]
 ---
-# 2 Graident Latent Variable Plot 
 
-&lt;img src="mod3_presentation_files/figure-html/2d latent variable plot-1.png" style="display: block; margin: auto;" /&gt;
+# Rank 2 Latent Variable Plot 
+
+
 
 ---
 # 3d Perspective plot
 
-```r
-persp(p2et.hs, xlim = c(-6, 5), ylim = c(-6, 3), 
-      theta = 120, phi = 20)
-```
-
-&lt;img src="mod3_presentation_files/figure-html/CQO 2d persp plot-1.png" style="display: block; margin: auto;" /&gt;
 ---
 # Extended ouput 
 
 .scroll-output[
 
 ```r
-coef(p2et.hs)
-```
-
-```
-## 
-## C matrix (constrained/canonical coefficients)
-##             latvar1    latvar2
-## WaterCon -0.3055434 -1.2743724
-## BareSand  0.4548566  0.1572668
-## FallTwig -0.6424939  0.6072466
-## CoveMoss  0.4604092 -0.9255322
-## CoveHerb -0.4161826 -0.2036919
-## ReflLux   1.0748765  0.0502115
-## 
-## B1 and A matrices
-##                      (Intercept)  A.latvar1   A.latvar2
-## loglink(E[Alopacce])  2.34918693  1.7505368  0.28385372
-## loglink(E[Alopcune])  3.65052960 -0.2262756  0.04103486
-## loglink(E[Alopfabr]) -0.87127005  2.6470499  1.02426251
-## loglink(E[Arctlute]) -0.03853201 -1.0361967 -1.51611184
-## loglink(E[Arctperi]) -7.82840869  4.1201710  2.13224139
-## loglink(E[Auloalbi])  2.92971635 -0.6263280 -0.38753106
-## loglink(E[Pardlugu])  1.30355616 -1.4744618  1.85150297
-## loglink(E[Pardmont])  3.58447870  1.0644544 -0.75020248
-## loglink(E[Pardnigr])  4.13542367 -0.6205682 -0.30342210
-## loglink(E[...])       3.75270854 -0.5391683 -1.22562234
-## loglink(E[Trocterr])  5.10923423 -0.7068856 -0.02138793
-## loglink(E[Zoraspin])  2.60636351 -1.0289971 -0.74939839
-## 
-## Optimums and maximums
-##          Optimum.latvar1 Optimum.latvar2    Maximum
-## Alopacce       1.7505368      0.28385372  50.484324
-## Alopcune      -0.2262756      0.04103486  39.526520
-## Alopfabr       2.6470499      1.02426251  23.493488
-## Arctlute      -1.0361967     -1.51611184   5.194588
-## Arctperi       4.1201710      2.13224139  18.778687
-## Auloalbi      -0.6263280     -0.38753106  24.555845
-## Pardlugu      -1.4744618      1.85150297  60.618893
-## Pardmont       1.0644544     -0.75020248  84.134118
-## Pardnigr      -0.6205682     -0.30342210  79.361122
-## ...           -0.5391683     -1.22562234 104.494544
-## Trocterr      -0.7068856     -0.02138793 212.577495
-## Zoraspin      -1.0289971     -0.74939839  30.465047
-## 
-## Tolerances
-##          tol1 tol2
-## Alopacce    1    1
-## Alopcune    1    1
-## Alopfabr    1    1
-## Arctlute    1    1
-## Arctperi    1    1
-## Auloalbi    1    1
-## Pardlugu    1    1
-## Pardmont    1    1
-## Pardnigr    1    1
-## ...         1    1
-## Trocterr    1    1
-## Zoraspin    1    1
-## 
-## Standard deviation of the latent variables (site scores)
-##  latvar1  latvar2 
-## 2.471191 1.155067
+# coef(p2et.hs)
 ```
 
 ]
 ---
 # Constained Additive Ordination 
-Besides VGLMs, additive models VGAMs can be fitted.  
+In addition to VGLMs, additive models (VGAMs) can be fitted.  
 - Syntax similar to CQO 
-- new argument: *df1.nl*: effective non-linear degrees of freedom  
+- new argument: *df1.nl* : effective non-linear degrees of freedom  
 - controls how smooth the output is (0 = linear)
-.scroll-output[
+.small[
 
 ```r
-set.seed(1)
-# p1cao.hs &lt;- cao(cbind(Alopacce, Alopcune, Alopfabr, Arctlute, Arctperi, Auloalbi,
-#                       Pardlugu, Pardmont, Pardnigr, Pardpull, Trocterr, Zoraspin) ~
-#                 WaterCon + BareSand + FallTwig + CoveMoss + CoveHerb + ReflLux,
-#                 poissonff, data = hspider, Rank = 1, df1.nl = 2, Bestof = 10, 
+# set.seed(1)
+# p1cao.hs &lt;- cao(cbind(Alopacce, Alopcune, Alopfabr, 
+#                       Arctlute, Arctperi, Auloalbi,
+#                       Pardlugu, Pardmont, Pardnigr, 
+#                       Pardpull, Trocterr, Zoraspin) ~
+#                 WaterCon + BareSand + FallTwig + 
+#                   CoveMoss + CoveHerb + ReflLux,
+#                 family = poissonff, 
+#                 data = hspider, 
+#                 Rank = 1, 
+#                 df1.nl = 2,
+#                 Bestof = 10,
 #                 Crow1positive = FALSE)
 ```
-
 ]
+
 ---
+
 # CAO single species plots
 
+.scroll-output[
+
+]
 
 ---
+
+# CAO Latent variable Plot 
 
 ---
 # In practice 
 
 - They are not commonly used 
-- individual GLMs outperformed CQO in predicting species ranges (Baselga &amp; Araújo, 2009)
-- CQO better for rare species but GLM predicts better (Bonthoux *et al.* 2013) 
-- mvabund glms differentiated between noise and causal variables better than CQO (Jupke &amp; Schäfer, 2020)
+
+--
+
+- GLM predicts species ranges better (Baselga &amp; Araújo, 2009)
+
+--
+
+- CQO better for rare species (Bonthoux *et al.* 2013) 
+
+--
+
+- manyglms differentiated between noise and causal variables better than CQO (Jupke &amp; Schäfer, 2020)
+
+--
+
 - CQO and CAO predict better (but still bad) than GLM and GAM to dissimilar conditions (Maguire *et. al.*, 2016) 
-- Applied studies mostly with fish (e.g. Vilizzi et al. (2012), Top *et al.* (2016))
-- "limitations on the number of species, steepness of the learning curve and low numerical stability of the algorithm" (ter Braak &amp; Šmilauer 2015)
+
+--
+
+- Applied studies mostly with fish (e.g. Vilizzi et al. (2012))
+
+--
+
+&lt;blockquote&gt;
+limitations on the number of species, steepness of the learning curve and low numerical stability of the algorithm
+.right[-- &lt;cite&gt;ter Braak &amp; Šmilauer 2015&lt;/cite&gt;]
+&lt;/blockquote&gt;
+
 ---
 class: inverse, center, middle
 # Latent Variable Models 
@@ -1494,9 +876,9 @@ class: inverse, center, middle
 --
 
 - Priors:
-- `\(\theta_{0j} \sim N(0,100)\)`
-- `\(\theta_{\lambda} \sim U(0,50)\ \forall\ \theta_{\lambda}:0\notin \theta_{\lambda}\)` 
-- `\(\theta_j; \alpha_i \sim N(0,20)\)`
+  - `\(\theta_{0j} \sim N(0,100)\)`
+  - `\(\theta_{\lambda} \sim U(0,50)\ \forall\ \theta_{\lambda}:0\notin \theta_{\lambda}\)` 
+  - `\(\theta_j; \alpha_i \sim N(0,20)\)`
 ---
 
 # Co-occurence is not Interaction 
@@ -1529,121 +911,41 @@ class: inverse, center, middle
 
 
 ```r
-pacman::p_load(boral, rjags, mvabund, UncertainOrd)
-data(spider)
-Y &lt;- spider$abund
-#fit_unconstrained_po &lt;- boral(y = Y, family = "poisson", lv.control = list(num.lv = 2),row.eff = "fixed",save.model=TRUE)
-summary(fit_unconstrained_po)
+# pacman::p_load(boral, rjags, mvabund, UncertainOrd)
+# data(spider)
+# Y &lt;- spider$abund
+# fit_unconstrained_po &lt;- boral(y = Y, 
+#                               family = "poisson", 
+#                               lv.control = list(num.lv = 2),
+#                               row.eff = "fixed",
+#                               save.model=TRUE)
+# summary(fit_unconstrained_po)
 ```
 
-```
-## $call
-## boral.default(y = Y, family = "poisson", lv.control = list(num.lv = 2), 
-##     row.eff = "fixed", save.model = T)
-## 
-## $coefficients
-##           coefficients
-## cols        beta0 theta1 theta2
-##   Alopacce  2.845  2.252  0.000
-##   Alopcune  2.741 -0.929  0.134
-##   Alopfabr  1.472  2.989  1.047
-##   Arctlute -1.315 -1.797 -2.054
-##   Arctperi -2.611  4.192  3.713
-##   Auloalbi  1.156 -2.791  0.158
-##   Pardlugu  1.594 -1.541  3.009
-##   Pardmont  3.016  1.590 -1.730
-##   Pardnigr  1.048 -2.651 -1.887
-##   Pardpull  2.652 -2.054 -0.883
-##   Trocterr  4.181 -1.863  0.570
-##   Zoraspin  2.142 -2.189  0.270
-## 
-## $lvs
-##     lv
-## rows    lv1    lv2
-##   1  -0.075 -0.708
-##   2  -1.619 -0.302
-##   3  -0.243 -0.587
-##   4  -0.916 -0.676
-##   5  -1.136 -1.083
-##   6  -0.746 -0.651
-##   7  -0.720 -1.011
-##   8  -0.474  1.124
-##   9   0.319 -1.373
-##   10  0.764 -1.113
-##   11  0.654 -1.144
-##   12  0.314 -0.923
-##   13 -0.567 -0.730
-##   14 -0.666 -0.535
-##   15 -0.891  0.768
-##   16 -0.715  0.555
-##   17 -0.795  0.575
-##   18 -0.638  0.710
-##   19 -0.709  0.910
-##   20 -0.612  0.979
-##   21 -0.436  1.024
-##   22  1.191  0.603
-##   23  1.010  0.589
-##   24  1.504  0.436
-##   25  0.194 -0.076
-##   26  1.204  1.255
-##   27  1.355  0.314
-##   28  1.041  0.251
-## 
-## $row.coefficients
-## $row.coefficients[[1]]
-##      1      2      3      4      5      6      7      8      9     10     11 
-##  0.000 -2.869 -0.070 -0.947 -1.354 -1.012 -0.343 -1.922 -2.736 -3.107 -1.516 
-##     12     13     14     15     16     17     18     19     20     21     22 
-## -0.620 -0.103 -0.579 -3.322 -2.659 -3.258 -2.989 -3.072 -3.009 -2.753 -3.207 
-##     23     24     25     26     27     28 
-## -2.272 -3.626 -0.893 -4.411 -2.962 -2.425 
-## 
-## 
-## $est
-## [1] "median"
-## 
-## $calc.ics
-## [1] FALSE
-## 
-## $trial.size
-##  [1] 0 0 0 0 0 0 0 0 0 0 0 0
-## 
-## $num.ord.levels
-## [1] 0
-## 
-## $prior.control
-## $prior.control$ssvs.index
-## [1] -1
-## 
-## 
-## attr(,"class")
-## [1] "summary.boral"
-```
+
 ]
 
 ---
 
 # Check model assumptions
 
-&lt;img src="mod3_presentation_files/figure-html/check-boral-ucpo-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Check model assumptions - NB
-&lt;img src="mod3_presentation_files/figure-html/check boral 2-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Ordination Diagram
-&lt;img src="mod3_presentation_files/figure-html/ordiplot boral 1-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 
 
 # Constrained Ordination 
 
---
-
 .scroll-output[
 
 ```r
-X &lt;- scale(spider$x)
-
+# X &lt;- scale(spider$x)
+# 
 # fit_constrained_nb &lt;-
 #   boral(
 #     y = Y,
@@ -1652,106 +954,19 @@ X &lt;- scale(spider$x)
 #     lv.control = list(num.lv = 2),
 #     save.model = TRUE
 #   )
-
-summary(fit_constrained_nb)
+# 
+# summary(fit_constrained_nb)
 ```
 
-```
-## $call
-## boral.default(y = Y, X = X, family = "negative.binomial", lv.control = list(num.lv = 2), 
-##     save.model = TRUE)
-## 
-## $coefficients
-##           coefficients
-## cols        beta0 theta1 theta2 Dispersion
-##   Alopacce -0.848  0.995  0.000      0.172
-##   Alopcune -0.033  1.455  1.269      0.420
-##   Alopfabr -2.677  1.615 -0.206      1.099
-##   Arctlute -3.761  1.133  1.101      3.002
-##   Arctperi -4.942 -0.214 -0.666      2.274
-##   Auloalbi -2.135  0.990  1.001      0.557
-##   Pardlugu -0.138  0.155  0.347      0.454
-##   Pardmont  1.196  1.015  0.292      0.652
-##   Pardnigr -0.509  1.249  1.743      0.228
-##   Pardpull -1.174  0.886  1.295      0.118
-##   Trocterr  2.565  0.207  0.781      0.071
-##   Zoraspin -0.183  0.171  1.527      0.311
-## 
-## $lvs
-##     lv
-## rows    lv1    lv2
-##   1   0.056  1.078
-##   2  -0.247 -0.144
-##   3   0.253  0.523
-##   4  -0.474  0.916
-##   5   0.189  0.013
-##   6   0.477  0.834
-##   7   0.148 -0.078
-##   8   0.670  0.125
-##   9  -0.424 -0.411
-##   10 -0.372 -0.494
-##   11  0.395 -0.555
-##   12  0.316  0.272
-##   13  0.701  0.272
-##   14 -0.707  0.077
-##   15 -0.881 -0.645
-##   16  0.129  0.578
-##   17 -0.952 -0.775
-##   18 -0.373 -0.937
-##   19 -0.194  0.339
-##   20 -0.032  0.193
-##   21  0.162 -0.202
-##   22  0.527  0.020
-##   23 -0.379 -0.051
-##   24 -0.292 -0.831
-##   25  0.816  0.513
-##   26 -0.931 -0.034
-##   27 -0.150 -0.616
-##   28 -0.343  0.260
-## 
-## $X.coefficients
-##           coefficients
-## cols       soil.dry bare.sand fallen.leaves   moss herb.layer reflection
-##   Alopacce   -0.868    -0.019        -0.979  0.101      1.023      1.873
-##   Alopcune    1.058    -1.134         0.205 -0.282      0.520      0.658
-##   Alopfabr   -1.039     1.394        -0.702  0.169      0.652      1.963
-##   Arctlute    3.209     0.216        -1.524  0.114      1.691     -0.670
-##   Arctperi   -2.198     1.067         0.851  0.479     -0.583      1.666
-##   Auloalbi    0.426    -0.355         0.836  0.157      4.439     -0.936
-##   Pardlugu   -1.634    -1.021         0.943 -0.670      0.616     -1.271
-##   Pardmont    1.247     0.274        -1.042  1.547      1.099     -0.148
-##   Pardnigr    1.862    -0.295        -1.526 -0.826      1.038     -0.785
-##   Pardpull    2.662    -1.071        -0.819  0.518      2.431     -0.537
-##   Trocterr    0.803    -0.405        -0.195 -0.489      0.570     -0.242
-##   Zoraspin    1.357     0.203        -0.677 -0.716      1.003     -1.297
-## 
-## $est
-## [1] "median"
-## 
-## $calc.ics
-## [1] FALSE
-## 
-## $trial.size
-##  [1] 0 0 0 0 0 0 0 0 0 0 0 0
-## 
-## $num.ord.levels
-## [1] 0
-## 
-## $prior.control
-## $prior.control$ssvs.index
-## [1] -1 -1 -1 -1 -1 -1
-## 
-## 
-## attr(,"class")
-## [1] "summary.boral"
-```
+
 ]
+
 ---
 # Correlation plots 
-&lt;img src="mod3_presentation_files/figure-html/boral correlation plots-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Correlation plots 
-&lt;img src="mod3_presentation_files/figure-html/boral correlation plots2-1.png" style="display: block; margin: auto;" /&gt;
+
 ---
 # Uncertainty in latent variable models
 - R package UncertainOrd (Hoegh &amp; Roberts, 2020)
@@ -1759,7 +974,7 @@ summary(fit_constrained_nb)
 
 
 .scroll-output[
-![](mod3_presentation_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;![](mod3_presentation_files/figure-html/unnamed-chunk-13-2.png)&lt;!-- --&gt;![](mod3_presentation_files/figure-html/unnamed-chunk-13-3.png)&lt;!-- --&gt;![](mod3_presentation_files/figure-html/unnamed-chunk-13-4.png)&lt;!-- --&gt;
+
 ]
 ---
 # Can we include traits in this? 
@@ -1876,13 +1091,21 @@ background-position: 50% 50%
 ---
 # Joint Species Distribution Models
 
-- biotic interactions are also important! (Wisz *et al.*, 2013)
+- biotic interactio   ns are also important! (Wisz *et al.*, 2013)
+
+--
 
 - limit range to that of another species (Schweiger *et al.*, 2012)
 
+--
+
 - use species at predictor variables (Leathwick &amp; Austin, 2001)
 
+--
+
 - JSDMs use resdiual correlation latent variables (Pollock *et al.* 2014)
+
+--
 
 `\begin{align}
 Pr(Y_{ij}=1) &amp; = Pr(Z_{ij} &gt; 0) \\
@@ -1896,7 +1119,11 @@ B_{jk} &amp; \sim N(\mu_k, \sigma_k)\\
 
 - alternative is called stacked SDM (many single species models)
 
+--
+
 - many studies compare predictive performance 
+
+--
 
 - JSDMs better for communities with many rare species but rank order differs according to evaluation metric (Norberg *et al.*, 2019)
 
@@ -1906,465 +1133,414 @@ B_{jk} &amp; \sim N(\mu_k, \sigma_k)\\
 
 --
 
-- **community level models**  "predict first, assemble later" vs. "assemble first, predict later" 
+- community level models  "predict first, assemble later" vs. "assemble first, predict later" 
 
 --
 
 - clm outperform stacked models slightly (Maguire *et al.*, 2016)
+
+--
+
 - clm perform poorly (Baselga &amp; Araújo, 2010)
 
 ---
 background-image: url("figures/ovaskainen2017_1.png")
-background-size: 700px
-background-position: 50% 50%
+background-size: 550px
+background-position: 50% 75%
 # Hierarchical modeling of species communities
 .footnote[Ovaskainen *et al.* (2017)]
 
 ---
-background-image: url("figures/ovaskainen_abrego2020-1.png")
-background-size: 700px
-background-position: 50% 50%
+background-image: url("figures/ovaskainen_abrego_2020-1.png")
+background-size: 550px
+background-position: 50% 70%
 # Hierarchical modeling of species communities
 .footnote[Ovaskainen &amp; Abrego (2020)]
 
 ---
-# Single Species - Corvus Monedula
+# HMSC - Single Species Example
 
 
 
-&lt;div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px; overflow-x: scroll; width:800px; "&gt;&lt;table class=" lightable-minimal" style='font-family: "Trebuchet MS", verdana, sans-serif; margin-left: auto; margin-right: auto;'&gt;
+
+---
+# HMSC - Single Species Example
+
+```r
+# m_full = Hmsc(Y=as.matrix(data$Corvus_monedula),
+#               XData=as.data.frame(data[,c("Habitat", "AprMay")]),
+#               XFormula=~Habitat+poly(AprMay, degree=2, raw=TRUE),
+#               distr = "lognormal poisson",
+#               studyDesign = data.frame(route=factor(data$Route)),
+#               ranLevels=list(route=HmscRandomLevel(sData = xy)))
+```
+
+--
+
+.blue[**lognormal poisson?**]
+
+--
+
+- instead of negative binomial
+- Poisson: `\(y_i \sim Poisson(exp(L_i))\)`
+- lognormal Poisson: `\(y_i \sim Poisson(exp(L_i + \epsilon_i)), \ \epsilon \sim N(0, \sigma^2)\)` 
+
+---
+# Fit model with MCMC
+
+```r
+# nChains = 2
+# thin=c(5,10,100)
+# nParallel = max(round(parallel::detectCores()/2), nChains)
+# samples = 1000
+# transient=500*thin
+# verbose=500*thin
+# 
+# for (i in 1:3) {
+#         models[[i]] = sampleMcmc(
+#                 models[[i]],
+#                 thin = thin[i],
+#                 samples = samples,
+#                 transient = transient,
+#                 nChains = nChains,
+#                 verbose = verbose,
+#                 initPar = "fixed effects"
+#         )
+# }
+```
+
+---
+
+# thinning=5
+.scroll-output[
+
+]
+---
+# thinning=10
+.scroll-output[
+
+]
+---
+# thinning=100
+.scroll-output[
+
+]
+---
+# Other MCMC convergence metrics
+.blue[**Effective sample size**]
+
+
+--
+
+.blue[**potential scale reduction factor**] 
+
+
+---
+# Cross-Validation Performance 
+
+
+--
+
+.blue[**O**] - Occurrence, .blue[**C**] - Count
+
+--
+
+.blue[**SR**]: pseudo- `\(R^2\)` based on squared spearman correlation  
+
+--
+
+.blue[**AUC**]: Area under Curve - higher = better   
+
+--
+
+.blue[**TjurR2**]: `\(\bar{\hat{y_i}}- \bar{\hat{y_j}}, \forall y_i = 1 \land  y_j = 0\)`
+---
+# Variance Partioining
+
+---
+# Predictions 
+
+
+
+
+---
+
+# Spatial Prediction 
+
+
+
+
+
+---
+# Spatial Prediction 
+
+
+---
+
+# Joint Species Distribution Modeling with HMSC 
+
+
+```r
+# setup ----
+# working directory 
+setwd(here())
+# directories 
+dir_data = "001_raw_data/hmsc_birds/data/"
+dir_model = "003_processed_data/hmsc_mcmc/jsdm"
+# setup ----
+dt_y = fread(file.path(dir_data, "data.csv"))
+dt_x = dt_y[,c(5,6,7,8,9)]
+# load phylogenetic data  
+ph_phylo &lt;- ape::read.tree(file.path(dir_data, "CTree.tre"))
+# load traits  
+dt_traits = fread(file.path(dir_data, "traits.csv")) 
+dt_traits$LogMass = log(dt_traits$Mass)
+```
+
+---
+
+# Phylogenetic data
+
+```r
+ph_phylo
+```
+
+```
+## 
+## Phylogenetic tree with 50 tips and 49 internal nodes.
+## 
+## Tip labels:
+##   Pica_pica, Corvus_corone, Corvus_corax, Corvus_monedula, Garrulus_glandarius, Alauda_arvensis, ...
+## 
+## Rooted; includes branch lengths.
+```
+
+---
+# Phylogenetic data
+
+&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-phylo-plot-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Traits
+&lt;div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:800px; "&gt;&lt;table class=" lightable-minimal" style='font-family: "Trebuchet MS", verdana, sans-serif; margin-left: auto; margin-right: auto;'&gt;
  &lt;thead&gt;
   &lt;tr&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Route &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Year &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; x &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; y &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Effort &lt;/th&gt;
-   &lt;th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;"&gt; Habitat &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; JunJul &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; DJF &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; AprMay &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phylloscopus_trochilus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_iliacus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Fringilla_coelebs &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_philomelos &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Carduelis_spinus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_major &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Anthus_trivialis &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Erithacus_rubecula &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Cuculus_canorus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Muscicapa_striata &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Ficedula_hypoleuca &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_pilaris &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Loxia_curvirostra &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Columba_palumbus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_borin &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Corvus_corone &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Dendrocopos_major &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Emberiza_citrinella &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_merula &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_curruca &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Regulus_regulus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Prunella_modularis &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phoenicurus_phoenicurus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_caeruleus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_montanus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Motacilla_alba &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Carduelis_chloris &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phylloscopus_collybita &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Tringa_ochropus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Parus_cristatus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_communis &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Grus_grus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Larus_canus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pica_pica &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Phylloscopus_sibilatrix &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Turdus_viscivorus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Hirundo_rustica &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Sylvia_atricapilla &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Tetrao_tetrix &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Pyrrhula_pyrrhula &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Dryocopus_martius &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Certhia_familiaris &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Alauda_arvensis &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Corvus_corax &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Saxicola_rubetra &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Garrulus_glandarius &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Numenius_arquata &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Carpodacus_erythrinus &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Gallinago_gallinago &lt;/th&gt;
-   &lt;th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;"&gt; Corvus_monedula &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Species &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Migration &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Mass &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Urb &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Br &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Co &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Op &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Ma &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; We &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; LogMass &lt;/th&gt;
   &lt;/tr&gt;
  &lt;/thead&gt;
 &lt;tbody&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5028.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4167.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6200 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Op &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16.777 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -0.89438 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7.57005 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 33 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Phylloscopus_trochilus &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; L &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 56 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.03 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.197225 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5052.3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4171.7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6300 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Co &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16.934 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.13370 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7.74435 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 62 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 76 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 31 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Turdus_iliacus &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; S &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 60 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.05 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.094345 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5077.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4178.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6000 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Urb &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16.887 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.27420 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7.70685 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 31 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 53 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fringilla_coelebs &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; S &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.05 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 36 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 21 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.091042 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5101.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4183.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6000 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Co &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16.803 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.17750 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7.63350 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 35 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 80 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Turdus_philomelos &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; S &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.05 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.8 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.234107 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4876.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4153.3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6300 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Urb &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15.297 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.72022 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6.89660 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 23 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 43 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Carduelis_spinus &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; S &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.564949 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Parus_major &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; R &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.30 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.9 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 24 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2014 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4975.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4176.3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6000 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; Co &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16.326 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -0.30000 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7.11275 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 32 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 65 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.944439 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;&lt;/div&gt;
+
+---
+# Subset to common species 
+
+```r
+vc_subset = sort(colSums(dt_y[,10:59]), decreasing = TRUE)
+vc_subset = names(vc_subset)[1:9]
+vc_subset = append(vc_subset, "Corvus_monedula")
+vc_subset = which(names(dt_y) %in% vc_subset)
+
+dt_y=dt_y[,append(1:9, vc_subset), with = F]
+ma_y=as.matrix(dt_y[,10:19])
+# reduce trait data to selected species
+dt_traits = dt_traits[Species %in% colnames(dt_y)]
+```
+
+---
+# Study Design 
+
+```r
+ma_studydesign           = matrix(NA,nrow(ma_y),2) 
+ma_studydesign[,1]       = sprintf('Route_%.3d',dt_y$Route) 
+ma_studydesign[,2]       = sprintf('Year_%.3d',dt_y$Year)
+df_studydesign           = as.data.frame(ma_studydesign) 
+colnames(df_studydesign) = c("Route","Year") 
+df_studydesign[,1]       = as.factor(df_studydesign[,1]) 
+df_studydesign[,2]       = as.factor(df_studydesign[,2])
+```
+---
+# Study Design
+
+&lt;div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:800px; "&gt;&lt;table class=" lightable-minimal" style='font-family: "Trebuchet MS", verdana, sans-serif; margin-left: auto; margin-right: auto;'&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Route &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Year &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Route_010 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Year_2012 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Route_010 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Year_2010 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Route_010 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Year_2011 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Route_010 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Year_2013 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Route_013 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Year_2014 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Route_013 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Year_2008 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/div&gt;
+---
+# Random Effect Structure 
+
+
+```r
+vc_routes  = levels(df_studydesign[,1]) 
+ma_xy      = matrix(0, 
+                    nrow = length(vc_routes), 
+                    ncol = 2)
+
+for (i in seq_along(vc_routes)){ 
+        rows       = df_studydesign[,1]==vc_routes[i] 
+        ma_xy[i,1] = mean(dt_y[rows,]$x) 
+        ma_xy[i,2] = mean(dt_y[rows,]$y)
+}
+
+colnames(ma_xy) = c("x","y") 
+ma_sRL = ma_xy 
+rownames(ma_sRL) = vc_routes 
+rL = HmscRandomLevel(sData=ma_sRL) 
+rL$nfMin = 5 
+rL$nfMax = 10
+```
+
+
+---
+# Defining the model 
+
+```r
+XFormula = ~ Habitat + poly(AprMay, degree = 2, raw = TRUE)
+TrFormula = ~Migration + LogMass
+
+m = Hmsc(Y = ma_y, 
+         XData = as.data.frame(dt_x), 
+         XFormula = XFormula, 
+         TrData = dt_traits, 
+         TrFormula = TrFormula, 
+         phyloTree = ph_phylo, 
+         distr = "lognormal poisson", 
+         studyDesign = df_studydesign, 
+         ranLevels = list(Route=rL))
+```
+---
+# MCMC convergence 
+
+
+
+.scroll-output[
+&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-1.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-2.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-3.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-4.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-5.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-6.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-7.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-8.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-9.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-10.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-11.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-12.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-13.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-14.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-15.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-16.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-17.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-18.png" style="display: block; margin: auto;" /&gt;
+]
+---
+.scroll-output[
+&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-1.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-2.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-3.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-4.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-5.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-6.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-gamma-7.png" style="display: block; margin: auto;" /&gt;
+]
+---
+.scroll-output[
+&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-sigma-1.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-sigma-2.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-sigma-3.png" style="display: block; margin: auto;" /&gt;&lt;img src="mod3_presentation_files/figure-html/hmsc-jsdm-plot-mcmc-sigma-4.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+# Effective Sample size
+![](mod3_presentation_files/figure-html/hmsc-jsdm-eff-1.png)&lt;!-- --&gt;
+
+
 ---
 class: inverse, center, middle 
 # Copulas 
@@ -2452,7 +1628,7 @@ background-position: 50% 80%
 ---
 background-image: url("figures/gosh2020b_1.png")
 background-size: 700px
-background-position: 50% 80%
+background-position: 50% 50%
 
 # Tails associations 
 
@@ -2460,7 +1636,7 @@ background-position: 50% 80%
 ---
 background-image: url("figures/gosh2020b_2.png")
 background-size: 700px
-background-position: 50% 80%
+background-position: 50% 50%
 
 # Tails associations 
 
@@ -2469,7 +1645,7 @@ background-position: 50% 80%
 ---
 background-image: url("figures/popovic2019_1.png")
 background-size: 500px
-background-position: 60% 80%
+background-position: 75% 70%
 # Disentangaling species associations
 
 - Popovic *et al.* 2019 and ecoCopula package
@@ -2487,7 +1663,7 @@ background-position: 60% 80%
 
 --
 
-- $\Omega = \Sigma^{-1}
+- `\(\Omega = \Sigma^{-1}\)`
 
 --
 
@@ -2502,33 +1678,16 @@ background-position: 60% 80%
 
 ```r
 # devtools::install_github("gordy2x/ecoCopula")
-library(ecoCopula)
-gcgm_obj_0 &lt;- cgr(tas.nb,lambda=0)
-plot(gcgm_obj_0)
+# library(ecoCopula)
+# gcgm_obj_0 &lt;- cgr(tas.nb,lambda=0)
+# plot(gcgm_obj_0)
+# gcgm_obj_1 &lt;- cgr(tas.nb,lambda=.1)
+# plot(gcgm_obj_1)
+# gcgm_obj_2 &lt;- cgr(tas.nb,lambda=.2)
+# plot(gcgm_obj_2)
+# gcgm_obj_3 &lt;- cgr(tas.nb,lambda=seq(from = 0, to = 0.2,by = 0.01))
+# plot(gcgm_obj_3)
 ```
-
-![](mod3_presentation_files/figure-html/ecoCopula-1.png)&lt;!-- --&gt;
-
-```r
-gcgm_obj_1 &lt;- cgr(tas.nb,lambda=.1)
-plot(gcgm_obj_1)
-```
-
-![](mod3_presentation_files/figure-html/ecoCopula-2.png)&lt;!-- --&gt;
-
-```r
-gcgm_obj_2 &lt;- cgr(tas.nb,lambda=.2)
-plot(gcgm_obj_2)
-```
-
-![](mod3_presentation_files/figure-html/ecoCopula-3.png)&lt;!-- --&gt;
-
-```r
-gcgm_obj_3 &lt;- cgr(tas.nb,lambda=seq(from = 0, to = 0.2,by = 0.01))
-plot(gcgm_obj_3)
-```
-
-![](mod3_presentation_files/figure-html/ecoCopula-4.png)&lt;!-- --&gt;
 ]
 ---
 class: inverse, center, middle 
